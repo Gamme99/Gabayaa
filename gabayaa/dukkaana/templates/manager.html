@@ -1,0 +1,29 @@
+{% extends 'base.html' %} {% block content %}
+<form method="post" action="{% url 'add_shoe' %}" enctype="multipart/form-data">
+  {% csrf_token %}
+  <br />
+  <br />
+  <input type="submit" value="Add Shoe" />
+</form>
+<form
+  method="post"
+  action="{% url 'add_cloth' %}"
+  enctype="multipart/form-data"
+>
+  {% csrf_token %}
+  <br />
+  <br />
+  <input type="submit" value="Add Cloth" />
+</form>
+<form
+  method="post"
+  action="{% url 'add_electronic' %}"
+  enctype="multipart/form-data"
+>
+  {% csrf_token %}
+  <br />
+  <br />
+  <input type="submit" value="Add Electronic" />
+</form>
+
+{% endblock %}
