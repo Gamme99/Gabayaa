@@ -1,0 +1,15 @@
+{% extends 'nav.html' %} {% block content %} {% for product in products %}
+<hr />
+<p>{{product.name}}</p>
+<p>${{product.price}}</p>
+<p>{{product.description}}</p>
+<p>{{product.image}}</p>
+{% if product.image %}
+<img
+  style="width: 10rem; height: 12rem"
+  src="{{ product.image.url }}"
+  alt="image of the shoe"
+/>
+{% else %}
+<p>No image available</p>
+{% endif %} {% endfor %} {% endblock %}

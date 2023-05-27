@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gabayaa</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+
+    <style>
+        .product-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+          }
+        
+          .product-box {
+            width: 23%;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+          }
+        
+          .product-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+          }
+        
+          .product-price {
+            font-weight: bold;
+          }
+        
+          .product-description {
+            margin-top: 10px;
+          }
+        
+          img {
+            width: 50%;
+            max-width: 100%;
+            height: auto;
+          }
+        
+          @media (max-width: 768px) {
+            .product-box {
+              width: 48%;
+            }
+          }
+        
+          @media (max-width: 480px) {
+            .product-box {
+              width: 100%;
+            }
+          }
+    </style>
+
+
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <a class="navbar-brand" href="{% url 'base' %}">Gabayaa</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNav"
+        aria-controls="navbarNav"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mr-auto"> <!-- Add the 'mr-auto' class to align the items to the left -->
+          <!-- <li class="nav-item">
+            <a class="nav-link" href="#">Meeshaalee Manaa</a>
+          </li> -->
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'cloths' %}">Huccuu</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'shoes' %}">Kophee</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'electronics' %}">Elektrooniksii</a>
+          </li>
+          <!-- <li class="nav-item">
+            <a class="nav-link" href="#">Nyaata</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Kudraa fi Mudraa</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'renting' %}">Mana Kiraa</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'buying' %}">Mana Gurgurtaa</a>
+          </li> -->
+          
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'manager' %}">Admin</a>
+          </li>
+        </ul>
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+          
+            {% if request.session.managerLogin %}
+            
+            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+          {% else %}
+          
+            <a class="nav-link" href="{% url 'login' %}">Login</a>
+
+          {% endif %}
+          <input
+            class="form-control mr-sm-2"
+            type="search"
+            placeholder="Search"
+            aria-label="Search"
+          />
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
+            Search
+          </button>
+        </form>
+      </div>
+    </nav>
+
+    <!-- Bootstrap JS and jQuery scripts (required for the navbar toggle) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    {%block content %} {% endblock %}
+
+  </body>
+</html>
