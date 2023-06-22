@@ -18,6 +18,12 @@ class Product(models.Model):
     
     def __str__(self):
         return self.name
+    
+    @property
+    def custom_id(self):
+        return f"{self.category}_{self.pk}"
+
+    id = custom_id
 
 class Shoe(Product):
     TYPE = (

@@ -7,57 +7,60 @@
     <title>Gabayaa</title>
     <link
       rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+
+    <link
+      rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
     />
 
     <style>
-        .product-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-          }
-        
-          .product-box {
-            width: 23%;
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            text-align: center;
-          }
-        
-          .product-name {
-            font-weight: bold;
-            margin-bottom: 10px;
-          }
-        
-          .product-price {
-            font-weight: bold;
-          }
-        
-          .product-description {
-            margin-top: 10px;
-          }
-        
-          img {
-            width: 50%;
-            max-width: 100%;
-            height: auto;
-          }
-        
-          @media (max-width: 768px) {
-            .product-box {
-              width: 48%;
-            }
-          }
-        
-          @media (max-width: 480px) {
-            .product-box {
-              width: 100%;
-            }
-          }
+      .product-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+      }
+
+      .product-box {
+        width: 23%;
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        text-align: center;
+      }
+
+      .product-name {
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .product-price {
+        font-weight: bold;
+      }
+
+      .product-description {
+        margin-top: 10px;
+      }
+
+      img {
+        width: 50%;
+        max-width: 100%;
+        height: auto;
+      }
+
+      @media (max-width: 768px) {
+        .product-box {
+          width: 48%;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .product-box {
+          width: 100%;
+        }
+      }
     </style>
-
-
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -74,7 +77,8 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav mr-auto"> <!-- Add the 'mr-auto' class to align the items to the left -->
+        <ul class="navbar-nav mr-auto">
+          <!-- Add the 'mr-auto' class to align the items to the left -->
           <!-- <li class="nav-item">
             <a class="nav-link" href="#">Meeshaalee Manaa</a>
           </li> -->
@@ -85,7 +89,9 @@
             <a class="nav-link" href="{% url 'shoes' %}">Kophee</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'electronics' %}">Elektrooniksii</a>
+            <a class="nav-link" href="{% url 'electronics' %}"
+              >Elektrooniksii</a
+            >
           </li>
           <!-- <li class="nav-item">
             <a class="nav-link" href="#">Nyaata</a>
@@ -99,20 +105,19 @@
           <li class="nav-item">
             <a class="nav-link" href="{% url 'buying' %}">Mana Gurgurtaa</a>
           </li> -->
-          
+
           <li class="nav-item">
             <a class="nav-link" href="{% url 'manager' %}">Admin</a>
           </li>
         </ul>
-        </ul>
+
         <form class="form-inline my-2 my-lg-0">
-          
-            {% if request.session.managerLogin %}
-            
-            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+          {% if request.user.is_authenticated%}
+
+          <a class="nav-link" href="{% url 'logout' %}">Logout</a>
           {% else %}
-          
-            <a class="nav-link" href="{% url 'login' %}">Login</a>
+
+          <a class="nav-link" href="{% url 'login' %}">Login</a>
 
           {% endif %}
           <input
@@ -124,15 +129,36 @@
           <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
             Search
           </button>
+
+          <a class="nav-link" href="{% url 'cart' %}">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
+            >
+              <g
+                fill="none"
+                stroke="white"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+              >
+                <path d="M6 6h24l-3 13H9m18 4H10L5 2H2" />
+                <circle cx="25" cy="27" r="2" />
+                <circle cx="12" cy="27" r="2" />
+              </g>
+            </svg>
+          </a>
         </form>
       </div>
     </nav>
 
     <!-- Bootstrap JS and jQuery scripts (required for the navbar toggle) -->
+
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     {%block content %} {% endblock %}
-
   </body>
 </html>
