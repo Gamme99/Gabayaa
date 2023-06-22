@@ -1,0 +1,77 @@
+{% extends 'nav.html' %} {% block content %}
+
+<br />
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <form
+        method="GET"
+        action="{% url 'search_products' %}"
+        class="form-inline"
+      >
+        <div class="input-group w-100">
+          <input
+            class="form-control"
+            type="search"
+            name="q"
+            placeholder="Search"
+            aria-label="Search"
+            value="{{ query }}"
+          />
+          <div class="input-group-append">
+            <button class="btn btn-outline-success" type="submit">
+              Search
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<br />
+
+<div class="container">
+  <h5 class="mb-3 text-center">Search results for: "{{ query }}"</h5>
+  <div class="row justify-content-center">
+    {% if results %}
+    <div class="list-group">
+      {% for product in results %}
+      <a
+        href="{% url 'product_info' product.category product.id %}"
+        class="list-group-item list-group-item-action"
+      >
+        <div class="row">
+          <div class="col-md-3">
+            {% if product.image %}
+            <img
+              src="{{ product.image.url }}"
+              class="card-img-top"
+              alt="some bullshit"
+              style="max-width: 100%"
+            />
+            {% else %}
+            <img
+              src="media/images/no_image.png"
+              class="card-img-top"
+              alt="{{ product.name }}"
+              style="max-width: 100%"
+            />
+            {% endif %}
+          </div>
+          <div class="col-md-9">
+            <h6 class="mt-0">{{ product.name }}</h6>
+            <p class="mb-1">Price: ${{ product.price }}</p>
+          </div>
+        </div>
+      </a>
+      <br />
+      {% endfor %}
+    </div>
+    {% else %}
+    <p>No results found.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
