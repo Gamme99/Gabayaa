@@ -20,7 +20,3 @@ class ShoeForm(ModelForm):
 class ElectronicForm(ModelForm):
    class Meta(ProductForm.Meta):
       model = Electronic
-
-
-
-
