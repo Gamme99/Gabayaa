@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -29,8 +29,10 @@ urlpatterns = [
 
 
     path('checkout', views.checkout, name='checkout'),
+    path('paypal_checkout', views.paypal_checkout, name='paypal_checkout'),
     path('checkout/success', views.checkout_success, name='success'),
     path('checkout/cancel', views.checkout_cancel, name='cancel'),
+    path('paypal/', include('paypal.standard.ipn.urls')),
 
     path('manager/add_shoe', views.add_shoe, name='add_shoe'),
     path('manager/add_cloth', views.add_cloth, name='add_cloth'),
@@ -41,4 +43,9 @@ urlpatterns = [
     path('login', views.loginManager, name='login'),
     path('register', views.register, name='register'),
     path('logout', views.logoutManager, name='logout'),
+
+    #    path('paypal_return/', views.paypal_return, name='paypal_return'),
+    #     path('paypal/successful', include('paypal.standard.ipn.urls')),
+    #     path('paypal/cancel', include('paypal.standard.ipn.urls')),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

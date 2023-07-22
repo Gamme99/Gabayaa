@@ -34,7 +34,6 @@ ALLOWED_HOSTS = []
 # ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'dukkaana'
+    'dukkaana',
+    'paypal.standard.ipn',
 ]
 
 MIDDLEWARE = [
@@ -137,6 +137,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # STATICFILES_DIRS = (
 #     os.path.join(BASE_DIR, 'static'),
 # )
+#
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # LOGIN_URL = 'login'
@@ -146,3 +147,9 @@ STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 # STRIPE_WEBHOOK_SECRET = ""
 
+PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
+PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET')
+
+# os.environ.get('PAYPAL_RECEIVER_EMAIL')
+PAYPAL_RECEIVER_EMAIL = 'gabaya@gmail.com'
+PAYPAL_TEST = True,

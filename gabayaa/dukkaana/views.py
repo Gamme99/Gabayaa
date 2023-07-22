@@ -1,5 +1,8 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.urls import reverse
+from django.http import HttpResponse, HttpRequest
+from django.views.decorators.csrf import csrf_exempt
+
 from .models import Cloth, Shoe, Electronic
 from .forms import ProductForm, ShoeForm, ClothForm, ElectronicForm
 from django.contrib.auth.decorators import login_required
@@ -13,8 +16,14 @@ from decimal import Decimal
 from django.http import JsonResponse
 from django.conf import settings
 from django import template
+
+from paypal.standard.forms import PayPalPaymentsForm
+import uuid
 import stripe
 import json
+
+import requests
+
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -24,65 +33,6 @@ register = template.Library()
 @register.filter
 def get_filename(value):
     return value.split('/')[-1]
-
-# def checkout(request):
-#     YOUR_DOMAIN = 'http://127.0.0.1:8000'
-#     checkout_session = stripe.checkout.Session.create(
-#         line_items=[
-#             {
-#                 # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-#                 'price': 'price_1NGHhHFMdMB6ZhbsQwsfub3C',
-#                 'quantity': 1,
-#             },
-#         ],
-#         mode='payment',
-#         success_url=YOUR_DOMAIN + '/success',
-#         cancel_url=YOUR_DOMAIN + '/cancel',
-#     )
-#     # return JsonResponse({'id': checkout_session.id})
-#     return redirect(checkout_session['url'], code=303)
-
-
-def checkout(request):
-    YOUR_DOMAIN = 'http://127.0.0.1:8000/checkout'
-    cart = request.session.get('cart', {})
-    line_items = []
-    for item_id, item in cart.items():
-        line_items.append({
-            'price_data': {
-                'currency': 'usd',
-                # Stripe accepts prices in cents
-                'unit_amount': int(item['price'] * 100),
-                'product_data': {
-                    'name': item['name'],
-                },
-            },
-            'quantity': item['quantity'],
-        })
-
-    session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=line_items,
-        mode='payment',
-        success_url=YOUR_DOMAIN + '/success',
-        cancel_url=YOUR_DOMAIN + '/cancel',
-    )
-
-    # return JsonResponse({'sessionId': session.id})
-    return redirect(session['url'], code=303)
-
-
-def checkout_success(request):
-    # prepare the confirmation with relevant details abuot the order
-    # create order model with customer details (name, contact,), items (cart), placed date
-
-    # Clear the cart after successful checkout
-    request.session['cart'] = {}
-    return render(request, 'success.html')
-
-
-def checkout_cancel(request):
-    return render(request, 'cancel.html')
 
 
 def base(request):
@@ -290,19 +240,145 @@ def add_electronic(request):
     return render(request, 'forms/add_electronic.html', context)
 
 
-# class DecimalEncoder(json.JSONEncoder):
-#     def default(self, obj):
-#         if isinstance(obj, Decimal):
-#             return str(obj)
-#         return super().default(obj)
-
-
 def calculate_item_count(cart):
     item_count = 0
     for item_id, item in cart.items():
         quantity = item.get('quantity')
         item_count += quantity
+
+    print("total: ", item_count)
     return item_count
+
+    # convert it into dictionary if needed
+
+
+def convertToDict(cart_json):
+    if isinstance(cart_json, str):
+        cart = json.loads(cart_json)
+    else:
+        cart = cart_json
+    return cart
+
+
+def checkout(request):
+    YOUR_DOMAIN = 'http://127.0.0.1:8000/checkout'
+    cart_json = request.session.get('cart', {})
+    cart = convertToDict(cart_json)
+    line_items = []
+    for item_id, item in cart.items():
+        line_items.append({
+            'price_data': {
+                'currency': 'usd',
+                # Stripe accepts prices in cents
+                'unit_amount': int(item['price'] * 100),
+                'product_data': {
+                    'name': item['name'],
+                },
+            },
+            'quantity': item['quantity'],
+        })
+
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=line_items,
+        mode='payment',
+        success_url=YOUR_DOMAIN + '/success',
+        cancel_url=YOUR_DOMAIN + '/cancel',
+    )
+
+    # return JsonResponse({'sessionId': session.id})
+    return redirect(session['url'], code=303)
+
+
+def get_access_token(client_id, client_secret):
+    url = 'https://api.sandbox.paypal.com/v1/oauth2/token'
+    headers = {
+        'Accept': 'application/json',
+        'Accept-Language': 'en_US'
+    }
+    data = {
+        'grant_type': 'client_credentials'
+    }
+    response = requests.post(url, headers=headers,
+                             data=data, auth=(client_id, client_secret))
+
+    response.raise_for_status()
+    print("________________________")
+    print(client_id)
+    print(client_secret)
+    print(response)
+    print(response.json()['access_token'])
+    print("________________________")
+    return response.json()['access_token']
+
+
+def paypalCheckout(request):
+    print("client id: ", settings.PAYPAL_CLIENT_ID)
+
+    context = {
+        'PAYPAL_CLIENT_ID': settings.PAYPAL_CLIENT_ID
+    }
+    return render(request, 'paypalTemplate.html', context)
+
+
+# @login_required("cart")
+def paypal_checkout(request):
+
+    host = request.get_host()
+    totala_price = request.session['total_price']
+    print("host:", host)
+    # Get the cart items from the session
+    cart_json = request.session.get('cart', {})
+    cart = convertToDict(cart_json)
+
+    item_details = []
+    for item_id, item in cart.items():
+        item_name = item['name']
+        item_price = item['price']
+        item_quantity = item['quantity']
+
+        # Create a dictionary for each item's details
+        item_details.append({
+            'name': item_name,
+            'price': '{:.2f}'.format(item_price),
+            'quantity': item_quantity,
+        })
+    paypal_dict = {
+        'business': settings.PAYPAL_RECEIVER_EMAIL,
+        'amount': request.session['total_price'],
+        'item_name': 'Order000',
+        'invoice': str(uuid.uuid4()),
+        'currency_code': 'USD',
+        'notify_url': f'http://{host}{reverse("paypal-ipn")}',
+        'return_url': f'http://{host}{reverse("success")}',
+        'cancel_url': f'http://{host}{reverse("cancel")}',
+        'item_total': calculate_item_count(cart),
+        'items': item_details,
+    }
+
+    # print("item details: ", item_details)
+
+    form = PayPalPaymentsForm(initial=paypal_dict)
+
+    context = {"form": form, "cart": cart, "total_price": totala_price,
+               'PAYPAL_CLIENT_ID': settings.PAYPAL_CLIENT_ID}
+
+    # print("form---------: ", form)
+
+    return render(request, 'paypal_checkout.html', context)
+
+
+def paypal_return(request):
+    return redirect('base')
+
+
+def checkout_success(request):
+    request.session['cart'] = {}
+    return render(request, 'success.html')
+
+
+def checkout_cancel(request):
+    return render(request, 'cancel.html')
 
 
 def cart(request):
@@ -311,7 +387,8 @@ def cart(request):
     # if request.user.is_authenticated:
     #     cart = request.user.cart
     # else:
-    cart = request.session.get('cart', {})
+    cart_json = request.session.get('cart', {})
+    cart = convertToDict(cart_json)
 
     # Calculate the total price
     total_price = 0.0
@@ -346,7 +423,8 @@ def add_to_cart(request, category, id):
         product = Electronic.objects.get(id=id)
 
     if product:
-        cart = request.session.get('cart', {})
+        cart_json = request.session.get('cart', {})
+        cart = convertToDict(cart_json)
         cart_key = f"{category}_{product.id}"
         cart_item = {
             'custom_id': cart_key,
@@ -358,7 +436,9 @@ def add_to_cart(request, category, id):
             'image': str(product.image),
         }
         cart[cart_key] = cart_item
-        request.session['cart'] = cart
+
+        cart_json = json.dumps(cart)
+        request.session['cart'] = cart_json
         messages.success(request, 'item successfully added to cart!')
         return redirect(request.META['HTTP_REFERER'])
 
@@ -372,29 +452,33 @@ def add_to_cart(request, category, id):
 
 def increase_quantity(request, id):
     if 'cart' in request.session:
-        cart = request.session['cart']
+        cart_json = request.session['cart']
+        # Parse the cart JSON string into a dictionary
+        cart = convertToDict(cart_json)
         if id in cart:
             cart[id]['quantity'] += 1
+            # Convert the updated cart dictionary back to a JSON string
+            cart_json = json.dumps(cart)
+            request.session['cart'] = cart_json
             request.session.modified = True
         else:
-            messages.error(request, 'error increasing quantity!')
+            messages.error(request, 'Error increasing quantity!')
     return redirect('cart')
 
 
 def decrease_quantity(request, id):
     if 'cart' in request.session:
-
-        cart = request.session['cart']
+        cart_json = request.session['cart']
+        cart = convertToDict(cart_json)
         if id in cart:
-            quantity = cart[id]['quantity']
-            print("before ", quantity)
-
-            if (quantity == 1):
+            if (cart[id]['quantity'] == 1):
                 print(" deleted item ")
                 remove_cart_item(request, id)
                 return redirect('cart')
 
             cart[id]['quantity'] -= 1
+            cart_json = json.dumps(cart)
+            request.session['cart'] = cart_json
             request.session.modified = True
         else:
             messages.error(request, 'item to decrease quantity not found!')
@@ -410,7 +494,8 @@ def edit_quantity(request, id):
         elif (quantity == 0):
             remove_cart_item(request, id)
         else:
-            cart = request.session.get('cart', {})
+            cart_json = request.session['cart']
+            cart = convertToDict(cart_json)
             if id in cart:
                 cart[id]['quantity'] = quantity
                 request.session['cart'] = cart
@@ -428,8 +513,9 @@ def edit_quantity(request, id):
 
 def remove_cart_item(request, id):
     # Retrieve the cart from the session
-    cart = request.session.get('cart', {})
 
+    cart_json = request.session.get('cart', {})
+    cart = convertToDict(cart_json)
     removed_item = cart[id]
     print("----------id: ", id)
     if id in cart:
@@ -441,6 +527,7 @@ def remove_cart_item(request, id):
         messages.error(request, 'error in removing the item')
         print(removed_item['name'], "is not removed")
 
-    request.session['cart'] = cart  # Update the cart in the session
+    cart_json = json.dumps(cart)
+    request.session['cart'] = cart_json  # Update the cart in the session
 
     return redirect('cart')  # Redirect to the

@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Product(models.Model):
     CATEGORY = (
         ('Shoe', 'Shoe'),
@@ -15,15 +16,16 @@ class Product(models.Model):
 
     class Meta:
         abstract = True
-    
+
     def __str__(self):
         return self.name
-    
+
     @property
     def custom_id(self):
         return f"{self.category}_{self.pk}"
 
     id = custom_id
+
 
 class Shoe(Product):
     TYPE = (
@@ -50,16 +52,18 @@ class Shoe(Product):
     class Meta:
         db_table = 'shoe'
 
+
 class Cloth(Product):
     class Meta:
         db_table = 'cloth'
-    
+
     def __str__(self):
         return self.name
-        
+
+
 class Electronic(Product):
     class Meta:
         db_table = 'electronic'
-    
+
     def __str__(self):
         return self.name

@@ -16,233 +16,184 @@
       </ul>
     </div>
   </div>
-  {% endif %}
+  {% endif %} {% if cart %}
 
-  <section class="h-100 h-custom" style="background-color: #d2c9ff">
-    <div class="container py-5 h-100">
-      <div class="row d-flex justify-content-center align-items-center h-100">
-        <div class="col-12">
-          <div
-            class="card card-registration card-registration-2"
-            style="border-radius: 15px"
-          >
-            <div class="card-body p-0">
-              <div class="row g-0">
-                <div class="col-lg-8">
-                  <div class="p-5">
-                    <div
-                      class="d-flex justify-content-between align-items-center mb-5"
-                    >
-                      <h1 class="fw-bold mb-0 text-black">Shopping Cart</h1>
-                      {% if cart %}
-                      <h6 class="mb-0 text-muted">{{ item_count }} items</h6>
-                      {% else %}
-                      <h6 class="mb-0 text-muted">0 items</h6>
-                      {% endif %}
-                    </div>
-                    <hr class="my-4" />
+  <section
+    class="h-100 h-custom"
+    style="background-color: #ffffff; border-radius: 15px"
+  >
+    <div class="card-body p-0">
+      <div class="row g-0">
+        <div class="col-lg-8">
+          <div class="p-5">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+              <h1 class="fw-bold mb-0 text-black">Shopping Cart</h1>
 
-                    {% if cart %} {% for item_id, item in cart.items %}
-                    <div
-                      class="row mb-4 d-flex justify-content-between align-items-center"
-                    >
-                      <div class="col-md-2 col-lg-2 col-xl-2">
-                        <a
-                          href="{% url 'product_info' item.category  item.id %}"
-                        >
-                          {% if item.image %}
+              <h6 class="mb-0 text-muted">{{ item_count }} items</h6>
+            </div>
+            <hr class="my-4" />
 
-                          <img
-                            src="/media/{{ item.image }}"
-                            class="img-fluid rounded-3"
-                            alt="{{ item.name }}"
-                          />
-                          {% else %}
-                          <img
-                            src="/media/images/no_image.png"
-                            class="img-fluid rounded-3"
-                            alt="{{ item.name }}"
-                          />
+            {% for item_id, item in cart.items %}
+            <div
+              class="row mb-4 d-flex justify-content-between align-items-center"
+            >
+              <div class="col-md-2 col-lg-2 col-xl-2">
+                <a href="{% url 'product_info' item.category  item.id %}">
+                  {% if item.image %}
 
-                          {% endif %}
-                        </a>
-                      </div>
-                      <div class="col-md-3 col-lg-3 col-xl-3">
-                        <h6 class="text-muted">{{ item.category }}</h6>
-                        <h6 class="text-black mb-0">{{ item.name }}</h6>
-                        <h6 class="text-black mb-0">this...{{ item.image }}</h6>
-                      </div>
-                      <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
-                        <form
-                          method="post"
-                          action="#"
-                          enctype="multipart/form-data"
-                        >
-                          <a
-                            href="{% url 'decrease_quantity' item.custom_id %}"
-                            class="btn btn-link px-2"
-                            onclick="this.parentNode.querySelector('input[type=number]').stepDown()"
-                          >
-                            <i class="fa fa-minus"></i>
-                          </a>
-                        </form>
-                        <form
-                          method="post"
-                          action="{% url 'edit_quantity' item.custom_id %}"
-                          enctype="multipart/form-data"
-                        >
-                          {% csrf_token %}
-                          <input
-                            id="form1"
-                            min="0"
-                            name="item{{ item.custom_id }}"
-                            value="{{ item.quantity }}"
-                            type="number"
-                            class="form-control form-control-sm"
-                            style="width: 50px"
-                            onchange="handleQuantityChange('{{ item.custom_id }}', this.value)"
-                          />
-                        </form>
-                        <form
-                          method="post"
-                          action="#"
-                          enctype="multipart/form-data"
-                        >
-                          <a
-                            href="{% url 'increase_quantity' item.custom_id %}"
-                            class="btn btn-link px-2"
-                            onclick="this.parentNode.querySelector('input[type=number]').stepUp()"
-                          >
-                            <i class="fa fa-plus"></i>
-                          </a>
-                        </form>
-                      </div>
-                      <div class="col-md-3 col-lg-2 col-xl-2 offset-lg-1">
-                        <h6 class="mb-0" id="itemPrice{{item.custom_id}}">
-                          $ {{ item.price }}
-                        </h6>
-                      </div>
-                      <div class="col-md-3 col-lg-1 col-xl-1 text-end">
-                        <a
-                          href="{% url 'remove_cart_item' item.custom_id %}"
-                          class="text-muted"
-                          ><i
-                            class="fa fa-trash"
-                            aria-hidden="false"
-                            style="color: red"
-                          ></i>
-                        </a>
-                      </div>
-                    </div>
-                    <hr class="my-4" />
-                    {% endfor %} {% else %}
-                    <p>Your cart is empty.</p>
-                    {% endif %}
+                  <img
+                    src="/media/{{ item.image }}"
+                    class="img-fluid rounded-3"
+                    alt="{{ item.name }}"
+                  />
+                  {% else %}
+                  <img
+                    src="/media/images/no_image.png"
+                    class="img-fluid rounded-3"
+                    alt="{{ item.name }}"
+                  />
 
-                    <div class="pt-5">
-                      <h6 class="mb-0">
-                        <a href="#!" class="text-body"
-                          ><i class="fas fa-long-arrow-alt-left me-2"></i>Back
-                          to shop</a
-                        >
-                      </h6>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-lg-4 bg-grey">
-                  <div class="p-5">
-                    <h3 class="fw-bold mb-5 mt-2 pt-1">Summary</h3>
-                    <hr class="my-4" />
-
-                    <div class="d-flex justify-content-between mb-4">
-                      <h5 class="text-uppercase">Items {{ item_count }}</h5>
-                      <h5 id="totalPrice">${{ total_price }}</h5>
-                    </div>
-
-                    <h5 class="text-uppercase mb-3">Shipping</h5>
-
-                    <div class="mb-4 pb-2">
-                      <select class="select">
-                        <option value="1">Standard-Delivery- $5.00</option>
-                        <option value="2">Two</option>
-                        <option value="3">Three</option>
-                        <option value="4">Four</option>
-                      </select>
-                    </div>
-
-                    <h5 class="text-uppercase mb-3">Give code</h5>
-
-                    <div class="mb-5">
-                      <div class="form-outline">
-                        <input
-                          type="text"
-                          id="form3Examplea2"
-                          class="form-control form-control-lg"
-                        />
-                        <label class="form-label" for="form3Examplea2"
-                          >Enter your code</label
-                        >
-                      </div>
-                    </div>
-
-                    <hr class="my-4" />
-
-                    <div class="d-flex justify-content-between mb-5">
-                      <h5 class="text-uppercase">Total price</h5>
-                      <h5>$ {{ total_price }}</h5>
-                    </div>
-
-                    <a
-                      href="{% url 'checkout'%}"
-                      class="btn btn-dark btn-block btn-lg"
-                      data-mdb-ripple-color="dark"
-                    >
-                      checkout
-                    </a>
-                  </div>
-                </div>
+                  {% endif %}
+                </a>
+              </div>
+              <div class="col-md-3 col-lg-3 col-xl-3">
+                <h6 class="text-muted">{{ item.category }}</h6>
+                <h6 class="text-black mb-0">{{ item.name }}</h6>
+              </div>
+              <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
+                <form method="post" action="#" enctype="multipart/form-data">
+                  <a
+                    href="{% url 'decrease_quantity' item.custom_id %}"
+                    class="btn btn-link px-2"
+                    onclick="this.parentNode.querySelector('input[type=number]').stepDown()"
+                  >
+                    <i class="fa fa-minus"></i>
+                  </a>
+                </form>
+                <form
+                  method="post"
+                  action="{% url 'edit_quantity' item.custom_id %}"
+                  enctype="multipart/form-data"
+                >
+                  {% csrf_token %}
+                  <input
+                    id="form1"
+                    min="0"
+                    name="item{{ item.custom_id }}"
+                    value="{{ item.quantity }}"
+                    type="number"
+                    class="form-control form-control-sm"
+                    style="width: 50px"
+                    onchange="handleQuantityChange('{{ item.custom_id }}', this.value)"
+                  />
+                </form>
+                <form method="post" action="#" enctype="multipart/form-data">
+                  <a
+                    href="{% url 'increase_quantity' item.custom_id %}"
+                    class="btn btn-link px-2"
+                    onclick="this.parentNode.querySelector('input[type=number]').stepUp()"
+                  >
+                    <i class="fa fa-plus"></i>
+                  </a>
+                </form>
+              </div>
+              <div class="col-md-3 col-lg-2 col-xl-2 offset-lg-1">
+                <h6 class="mb-0" id="itemPrice{{item.custom_id}}">
+                  $ {{ item.price }}
+                </h6>
+              </div>
+              <div class="col-md-3 col-lg-1 col-xl-1 text-end">
+                <a
+                  href="{% url 'remove_cart_item' item.custom_id %}"
+                  class="text-muted"
+                  ><i
+                    class="fa fa-trash"
+                    aria-hidden="false"
+                    style="color: red"
+                  ></i>
+                </a>
               </div>
             </div>
+            <hr class="my-4" />
+            {% endfor %}
+
+            <div class="pt-5">
+              <h6 class="mb-0">
+                <a href="#!" class="text-body"
+                  ><i class="fas fa-long-arrow-alt-left me-2"></i>Back to
+                  shop</a
+                >
+              </h6>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4 bg-grey">
+          <div class="p-5">
+            <h3 class="fw-bold mb-5 mt-2 pt-1">Summary</h3>
+            <hr class="my-4" />
+
+            <div class="d-flex justify-content-between mb-4">
+              <h5 class="text-uppercase">Items {{ item_count }}</h5>
+              <h5 id="totalPrice">${{ total_price }}</h5>
+            </div>
+
+            <h5 class="text-uppercase mb-3">Shipping</h5>
+
+            <div class="mb-4 pb-2">
+              <select class="select">
+                <option value="1">Standard-Delivery- $5.00</option>
+                <option value="2">Two</option>
+                <option value="3">Three</option>
+                <option value="4">Four</option>
+              </select>
+            </div>
+
+            <h5 class="text-uppercase mb-3">Give code</h5>
+
+            <div class="mb-5">
+              <div class="form-outline">
+                <input
+                  type="text"
+                  id="form3Examplea2"
+                  class="form-control form-control-lg"
+                />
+                <label class="form-label" for="form3Examplea2"
+                  >Enter your code</label
+                >
+              </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <div class="d-flex justify-content-between mb-5">
+              <h5 class="text-uppercase">Total price</h5>
+              <h5>$ {{ total_price }}</h5>
+            </div>
+
+            <a
+              href="{% url 'checkout'%}"
+              class="btn btn-dark btn-block btn-lg"
+              data-mdb-ripple-color="dark"
+            >
+              Stripe checkout
+            </a>
+            <a
+              href="{% url 'paypal_checkout'%}"
+              class="btn btn-dark btn-block btn-lg"
+              data-mdb-ripple-color="dark"
+            >
+              PayPal Checkout
+            </a>
+
+            <br />
           </div>
         </div>
       </div>
     </div>
   </section>
+  {% else %}
+  <h6 class="text-center mt-4 mb-5">Cart is empty</h6>
+  {% endif %}
 </div>
-
-<script>
-  // Function to handle quantity change
-  function handleQuantityChange(itemId, quantity) {
-    // Make a POST request to update the quantity
-    fetch("/update_quantity/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}", // Include the CSRF token
-      },
-      body: JSON.stringify({
-        item_id: itemId,
-        quantity: quantity,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        // Update the total price
-        document.getElementById("totalPrice").textContent =
-          "$ " + data.total_price;
-
-        // Update the item price
-        document.getElementById("itemPrice" + itemId).textContent =
-          "$ " + data.item_price;
-
-        // Display success message or perform any other actions if needed
-        console.log("Quantity updated successfully");
-      })
-      .catch((error) => {
-        // Handle error and display error message if necessary
-        console.error("Error updating quantity:", error);
-      });
-  }
-</script>
 
 {% endblock %}
