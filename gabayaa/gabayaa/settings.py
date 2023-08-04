@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'dukkaana',
     'paypal.standard.ipn',
+    'multiupload',
 ]
 
 MIDDLEWARE = [

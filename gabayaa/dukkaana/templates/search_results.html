@@ -42,10 +42,10 @@
         class="list-group-item list-group-item-action"
       >
         <div class="row">
-          <div class="col-md-3">
+          <div class="col-md-3" style="width: 300px">
             {% if product.image %}
             <img
-              src="{{ product.image.url }}"
+              src="../../media/images/{{ product.image }}"
               class="card-img-top"
               alt="some bullshit"
               style="max-width: 100%"
@@ -62,6 +62,7 @@
           <div class="col-md-9">
             <h6 class="mt-0">{{ product.name }}</h6>
             <p class="mb-1">Price: ${{ product.price }}</p>
+            <p class="mb-1">image: {{ product.image }}</p>
           </div>
         </div>
       </a>

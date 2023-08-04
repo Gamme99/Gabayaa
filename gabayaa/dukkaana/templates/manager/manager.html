@@ -1,104 +1,59 @@
 {% extends 'nav.html' %} {% block content %}
 
-<style>
-  /* CSS Styles */
-  .container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
-  h2 {
-    text-align: center;
-  }
-
-  .welcome-section {
-    text-align: center;
-  }
-
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 20px;
-  }
-
-  .form-card {
-    width: calc(50% - 10px);
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease-in-out;
-  }
-
-  .form-card:hover {
-    transform: translateY(-5px);
-  }
-
-  .add-button,
-  .view-button {
-    display: block;
-    width: 100%;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    background-color: #007bff;
-    color: #fff;
-    transition: background-color 0.2s ease-in-out;
-  }
-
-  .add-button:hover,
-  .view-button:hover {
-    background-color: #0056b3;
-  }
-</style>
-
 <div class="container">
   <h2>Hello, {{ request.user }}!</h2>
-  <div class="welcome-section">
-    <div class="actions">
-      <form
-        method="post"
-        action="{% url 'add_shoe' %}"
-        enctype="multipart/form-data"
-        class="form-card"
-      >
-        {% csrf_token %}
-        <button class="add-button" type="submit">Add a New Shoe</button>
-      </form>
-      <form
-        method="post"
-        action="{% url 'add_cloth' %}"
-        enctype="multipart/form-data"
-        class="form-card"
-      >
-        {% csrf_token %}
-        <button class="add-button" type="submit">Add a New Cloth</button>
-      </form>
-      <form
-        method="post"
-        action="{% url 'add_electronic' %}"
-        enctype="multipart/form-data"
-        class="form-card"
-      >
-        {% csrf_token %}
-        <button class="add-button" type="submit">Add a New Electronic</button>
-      </form>
-      <form
-        method="post"
-        action="{% url 'view_products' %}"
-        enctype="multipart/form-data"
-        class="form-card"
-      >
-        {% csrf_token %}
-        <button class="view-button" type="submit">View Products</button>
-      </form>
+  <form
+    method="post"
+    action="{% url 'add_product' %}"
+    enctype="multipart/form-data"
+    class="card"
+  >
+    {% csrf_token %}
+    <div class="card-body">
+      <h5 class="card-title">Select the Product Category:</h5>
+      <div class="form-group">
+        <button
+          class="btn btn-primary add-button"
+          type="submit"
+          name="category"
+          value="Shoe"
+        >
+          Add a New Shoe
+        </button>
+      </div>
+      <div class="form-group">
+        <button
+          class="btn btn-primary add-button"
+          type="submit"
+          name="category"
+          value="Cloth"
+        >
+          Add a New Cloth
+        </button>
+      </div>
+      <div class="form-group">
+        <button
+          class="btn btn-primary add-button"
+          type="submit"
+          name="category"
+          value="Electronic"
+        >
+          Add a New Electronic
+        </button>
+      </div>
     </div>
-    <!-- <p>Please <a href="{% url 'login' %}">Login</a> to Add products</p> -->
-  </div>
+  </form>
 </div>
+
+<br />
+<form
+  method="post"
+  action="{% url 'view_products' %}"
+  enctype="multipart/form-data"
+  class="form-card"
+>
+  {% csrf_token %}
+  <button class="view-button" type="submit">View Products</button>
+</form>
+
 {% endblock %}
