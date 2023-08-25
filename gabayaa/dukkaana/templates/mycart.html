@@ -33,37 +33,41 @@
             </div>
             <hr class="my-4" />
 
-            {% for item_id, item in cart.items %}
+            {% for item in cart %}
             <div
               class="row mb-4 d-flex justify-content-between align-items-center"
             >
               <div class="col-md-2 col-lg-2 col-xl-2">
-                <a href="{% url 'product_info' item.category  item.id %}">
-                  {% if item.image %}
+                <a
+                  href="{% url 'product_info' item.product.category  item.product.id %}"
+                >
+                  {% if item.product.image %}
 
                   <img
-                    src="../../media/images/{{ item.image }}"
+                    src="../../media/images/{{ item.product.image }}"
                     class="img-fluid rounded-3"
-                    alt="{{ item.name }}"
+                    alt="{{ item.product.name }}"
                   />
                   {% else %}
                   <img
                     src="/media/images/no_image.png"
                     class="img-fluid rounded-3"
-                    alt="{{ item.name }}"
+                    alt="{{ item.product.name }}"
                   />
 
                   {% endif %}
                 </a>
               </div>
               <div class="col-md-3 col-lg-3 col-xl-3">
-                <h6 class="text-muted">{{ item.category }}</h6>
-                <h6 class="text-black mb-0">{{ item.name }}</h6>
+                <h6 class="text-muted">{{ item.product.category }}</h6>
+                <h6 class="text-black mb-0">{{ item.product.name }}</h6>
+                <h6 class="text-black mb-0">{{ item.product.id }}</h6>
+                <h6 class="text-black mb-0">{{ item.id }}</h6>
               </div>
               <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
                 <form method="post" action="#" enctype="multipart/form-data">
                   <a
-                    href="{% url 'decrease_quantity' item.id %}"
+                    href="{% url 'decrease_quantity' item.product.id %}"
                     class="btn btn-link px-2"
                     onclick="this.parentNode.querySelector('input[type=number]').stepDown()"
                   >
@@ -72,24 +76,24 @@
                 </form>
                 <form
                   method="post"
-                  action="{% url 'edit_quantity' item.id %}"
+                  action="{% url 'edit_quantity' item.product.id %}"
                   enctype="multipart/form-data"
                 >
                   {% csrf_token %}
                   <input
                     id="form1"
                     min="0"
-                    name="item{{ item.id }}"
+                    name="item{{ item.product.id }}"
                     value="{{ item.quantity }}"
                     type="number"
                     class="form-control form-control-sm"
                     style="width: 50px"
-                    onchange="handleQuantityChange('{{ item.id }}', this.value)"
+                    onchange="handleQuantityChange('{{ item.product.id }}', this.value)"
                   />
                 </form>
                 <form method="post" action="#" enctype="multipart/form-data">
                   <a
-                    href="{% url 'increase_quantity' item.id %}"
+                    href="{% url 'increase_quantity' item.product.id %}"
                     class="btn btn-link px-2"
                     onclick="this.parentNode.querySelector('input[type=number]').stepUp()"
                   >
@@ -98,13 +102,13 @@
                 </form>
               </div>
               <div class="col-md-3 col-lg-2 col-xl-2 offset-lg-1">
-                <h6 class="mb-0" id="itemPrice{{item.id}}">
-                  $ {{ item.price }}
+                <h6 class="mb-0" id="itemPrice{{item.product.id}}">
+                  $ {{ item.unit_price }}
                 </h6>
               </div>
               <div class="col-md-3 col-lg-1 col-xl-1 text-end">
                 <a
-                  href="{% url 'remove_cart_item' item.id %}"
+                  href="{% url 'remove_cart_item' item.product.id %}"
                   class="text-muted"
                   ><i
                     class="fa fa-trash"

@@ -1,4 +1,13 @@
-{% extends 'nav.html' %} {% block content %} {% if username %} welcome
-{{username}} {% else %}
-<p>welcome, popular products will be displayed here ...</p>
-{% endif %} {% endblock %}
+{% extends 'nav.html' %} {% block content %} {% if username == "" %}
+<a href="{% url 'login_customer' %}"> Login</a>
+<br />
+<br />
+<br />
+<p>dont have account?</p>
+<a href="{% url 'register_customer' %}"> register</a>
+{% else %}
+<p>
+  welcome <span style="font-weight: bold">{{request.user}}</span> this is the
+  home page
+</p>
+<br />{% endif%} {%endblock%}

@@ -4,6 +4,60 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from django.utils.crypto import get_random_string
+from django.db import models
+
+from django.contrib.auth.models import AbstractUser, Group, Permission, BaseUserManager
+
+from django.contrib.auth import get_user_model
+
+
+class MyAccountManager(BaseUserManager):
+
+    def create_user(self, email, username, password=None):
+        if not email:
+            raise ValueError("Users must have an email address.")
+        if not username:
+            raise ValueError("Users must have an username.")
+        user = self.model(email=self.normalize_email(
+            email), username=username)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, username, password):
+        user = self.create_user(
+            email=self.normalize_email(email),
+            username=username,
+            password=password,
+        )
+        # user.is_admin = True
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
+
+
+class Customer(AbstractUser):
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=20, null=True)
+    street_address = models.CharField(max_length=20, null=True)
+    city = models.CharField(max_length=20, null=True)
+    state = models.CharField(max_length=20, null=True)
+    zip_code = models.CharField(max_length=10, null=True)
+    billing_address = models.CharField(max_length=20, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    is_admin = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+
+    objects = MyAccountManager()
+
+    def __str__(self):
+        return self.username
 
 
 class Product(models.Model):
@@ -17,95 +71,69 @@ class Product(models.Model):
     price = models.FloatField(null=True)
     description = models.CharField(max_length=200, null=True)
     image = models.CharField(max_length=200, null=True, blank=True)
-    # image = models.ImageField(upload_to='images/', null=True, blank=True)
     date_added = models.DateTimeField(auto_now_add=True, null=True)
 
     class Meta:
-        abstract = True
-        # db_table = 'product'
+        db_table = 'product'
 
     def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
         if not self.pk:  # Check if it's a new instance, not an update
-            # Generate a unique ID based on category and random string
             unique_id = get_random_string(length=8, allowed_chars='0123456789')
             self.pk = unique_id
-
-            # Set the first image from associated images as the "image" field
-            # if not self.image:
-            #     first_image = self.get_first_image_from_files()
-            #     if first_image:
-            #         self.image = first_image
 
         super().save(*args, **kwargs)
 
     def get_first_image_from_files(self):
-        # Assuming you have a related_name in the ProductImage model
         images = self.product_images.all()
         if images.exists():
             return images.first().image
         return None
 
+    def __str__(self):
+        return self.name
+
 
 class ProductImage(models.Model):
     image = models.ImageField(upload_to='images/')
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    # Store the custom ID as a CharField
-    object_id = models.CharField(max_length=200)
-    content_object = GenericForeignKey('content_type', 'object_id')
+    productId = models.ForeignKey(Product, on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'product_image'
 
-    # def save(self, *args, **kwargs):
-    #     if not self.pk:  # Check if it's a new instance, not an update
-    #         # Generate a unique ID based on content type and custom ID of the associated object
-    #         self.object_id = f"{self.content_type.model}_{self.content_object.pk}"
-    #     super().save(*args, **kwargs)
-
     def __str__(self):
-        return self.object_id
+        return f"Image for {self.productId.name}"
 
 
-class Shoe(Product):
-    TYPE = (
-        ('Outdoor', 'Outdoor'),
-        ('Indoor', 'Indoor'),
-        ('Man', 'Man'),
-        ('Woman', 'Woman'),
-        ('Kids', 'Kids'),
-    )
-    SIZE = (
-        ('US 5', 'US 5'),
-        ('US 6', 'US 6'),
-        ('US 7', 'US 7'),
-        ('US 9', 'US 9'),
-        ('US 10', 'US 10'),
-        ('US 11', 'US 11'),
-        ('US 12', 'US 12'),
-        ('US 13', 'US 13'),
-    )
-
-    type = models.CharField(max_length=200, null=True, choices=TYPE)
-    size = models.CharField(max_length=200, null=True, choices=SIZE)
+class Cart(models.Model):
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    total_items = models.PositiveIntegerField(default=0)
+    total_price = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0.00)
 
     class Meta:
-        db_table = 'shoe'
-
-
-class Cloth(Product):
-    class Meta:
-        db_table = 'cloth'
+        db_table = 'cart'
 
     def __str__(self):
-        return self.name
+        return f"{self.user}"
 
 
-class Electronic(Product):
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    unit_price = models.DecimalField(
+        default=0.00, max_digits=10, decimal_places=2)  # Price of one item
+
+    def get_total_price(self):
+        return self.unit_price * self.quantity
+
     class Meta:
-        db_table = 'electronic'
+        db_table = 'cart_item'
 
     def __str__(self):
-        return self.name
+        return f"{self.product} for {self.cart}"

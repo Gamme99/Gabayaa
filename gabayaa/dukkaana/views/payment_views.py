@@ -6,11 +6,13 @@ from paypal.standard.forms import PayPalPaymentsForm
 import uuid
 import stripe
 import requests
+from ..models import Product, CartItem, Cart
+
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-def checkout(request):
+def stripeCheckout(request):
     YOUR_DOMAIN = 'http://127.0.0.1:8000/checkout'
     cart_json = request.session.get('cart', {})
     cart = convertToDict(cart_json)
@@ -67,47 +69,81 @@ def get_access_token(client_id, client_secret):
 def paypal_checkout(request):
 
     host = request.get_host()
-    totala_price = request.session['total_price']
-    print("host:", host)
-    # Get the cart items from the session
-    cart_json = request.session.get('cart', {})
-    cart = convertToDict(cart_json)
-
+    total_price = 0.0
+    cart = {}
     item_details = []
-    for item_id, item in cart.items():
-        item_name = item['name']
-        item_price = item['price']
-        item_quantity = item['quantity']
+    item_total = 0
+    checkout = ""
 
-        # Create a dictionary for each item's details
-        item_details.append({
-            'name': item_name,
-            'price': '{:.2f}'.format(item_price),
-            'quantity': item_quantity,
-        })
+    if request.user.is_authenticated:
+        user_cart, created = Cart.objects.get_or_create(user=request.user)
+        cart_items = CartItem.objects.filter(cart=user_cart)
+        item_total = user_cart.total_items
+        total_price = user_cart.total_price
+
+        cart = cart_items
+
+        # item_details = []
+
+        for item in cart:
+            # Assuming your CartItem model has a ForeignKey to a Product model
+            item_name = item.product.name
+            item_price = item.product.price  # Assuming your Product model has a 'price' field
+            item_quantity = item.quantity
+
+            # Create a dictionary for each item's details
+            item_details.append({
+                'name': item_name,
+                'price': '{:.2f}'.format(item_price),
+                'quantity': item_quantity,
+            })
+
+        form = PayPalPaymentsForm()
+        checkout = "paypal_checkout_auth.html"
+
+        # context = {"form": form, "cart": cart, "total_price": total_price,
+        #            'PAYPAL_CLIENT_ID': settings.PAYPAL_CLIENT_ID}
+        # return render(request, 'paypal_checkout_auth.html', context)
+
+    else:
+        print("host:", host)
+        # Get the cart items from the session
+        cart_json = request.session.get('cart', {})
+        cart = convertToDict(cart_json)
+        item_total = calculate_item_count(cart)
+        total_price = request.session['total_price']
+        # item_details = []
+        for item_id, item in cart.items():
+            item_name = item['name']
+            item_price = item['price']
+            item_quantity = item['quantity']
+
+            # Create a dictionary for each item's details
+            item_details.append({
+                'name': item_name,
+                'price': '{:.2f}'.format(item_price),
+                'quantity': item_quantity,
+            })
+
+        checkout = "paypal_checkout.html"
+
     paypal_dict = {
         'business': settings.PAYPAL_RECEIVER_EMAIL,
-        'amount': request.session['total_price'],
+        'amount': total_price,
         'item_name': 'Order000',
         'invoice': str(uuid.uuid4()),
         'currency_code': 'USD',
         'notify_url': f'http://{host}{reverse("paypal-ipn")}',
         'return_url': f'http://{host}{reverse("success")}',
         'cancel_url': f'http://{host}{reverse("cancel")}',
-        'item_total': calculate_item_count(cart),
+        'item_total': item_total,
         'items': item_details,
     }
-
-    # print("item details: ", item_details)
-
     form = PayPalPaymentsForm(initial=paypal_dict)
 
-    context = {"form": form, "cart": cart, "total_price": totala_price,
+    context = {"form": form, "cart": cart, "total_price": total_price,
                'PAYPAL_CLIENT_ID': settings.PAYPAL_CLIENT_ID}
-
-    # print("form---------: ", form)
-
-    return render(request, 'paypal_checkout.html', context)
+    return render(request, checkout, context)
 
 
 def paypal_return(request):

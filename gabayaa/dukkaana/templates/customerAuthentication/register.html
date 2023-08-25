@@ -1,0 +1,318 @@
+{% extends 'base.html' %} {% block content %}
+
+<style>
+  @media (min-width: 1025px) {
+    .h-custom {
+      height: 100vh !important;
+    }
+  }
+  .card-registration .select-input.form-control[readonly]:not([disabled]) {
+    font-size: 1rem;
+    line-height: 2.15;
+    padding-left: 0.75em;
+    padding-right: 0.75em;
+  }
+  .card-registration .select-arrow {
+    top: 13px;
+  }
+
+  .gradient-custom-2 {
+    /* fallback for old browsers */
+    background: #a1c4fd;
+
+    /* Chrome 10-25, Safari 5.1-6 */
+    background: -webkit-linear-gradient(
+      to right,
+      rgba(161, 196, 253, 1),
+      rgba(194, 233, 251, 1)
+    );
+
+    /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    background: linear-gradient(
+      to right,
+      rgba(161, 196, 253, 1),
+      rgba(194, 233, 251, 1)
+    );
+  }
+
+  .bg-indigo {
+    background-color: #4835d4;
+  }
+  @media (min-width: 992px) {
+    .card-registration-2 .bg-indigo {
+      border-top-right-radius: 15px;
+      border-bottom-right-radius: 15px;
+    }
+  }
+  @media (max-width: 991px) {
+    .card-registration-2 .bg-indigo {
+      border-bottom-left-radius: 15px;
+      border-bottom-right-radius: 15px;
+    }
+  }
+</style>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4"></script> -->
+
+<br />
+{% if messages %}
+<ul class="messages">
+  {% for message in messages %}
+  <li {% if message.tags %} class="{{ message.tags }}" {% endif %}>
+    {{ message }}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+<br />
+<br />
+<section class="h-100 h-custom gradient-custom-2">
+  <div class="container py-5 h-100">
+    <div class="row d-flex justify-content-center align-items-center h-100">
+      <div class="col-12">
+        <form method="post" action="{% url 'register_customer' %}">
+          {% csrf_token %}
+          <div
+            class="card card-registration card-registration-2"
+            style="border-radius: 15px"
+          >
+            <div class="card-body p-0">
+              <div class="row g-0">
+                <div class="col-lg-6">
+                  <div class="p-5">
+                    <h3 class="fw-normal mb-5" style="color: #4835d4">
+                      Register
+                    </h3>
+
+                    <label class="form-label" for="gender">Gender</label>
+                    <div class="mb-4 pb-2">
+                      <select class="select">
+                        <!-- <option value="1"></option> -->
+                        <option value="1">Man</option>
+                        <option value="2">Woman</option>
+                      </select>
+                    </div>
+                    <div class="row">
+                      <div class="col-md-6 mb-4 pb-2">
+                        <div class="form-outline">
+                          {{ form.username }}
+                          <label
+                            class="form-label"
+                            for="{{ form.username.id_for_label }}"
+                            >username
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6 mb-4 pb-2">
+                        <div class="form-outline">
+                          {{ form.email }}
+                          <label
+                            class="form-label"
+                            for="{{ form.email.id_for_label }}"
+                            >email
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6 mb-4 pb-2">
+                        <div class="form-outline">
+                          {{ form.first_name }}
+                          <label
+                            class="form-label"
+                            for="{{ form.first_name.id_for_label }}"
+                            >first name
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-md-6 mb-4 pb-2">
+                        <div class="form-outline">
+                          {{ form.last_name }}
+                          <label
+                            class="form-label"
+                            for="{{ form.last_name.id_for_label }}"
+                            >Last name</label
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6 mb-4 pb-2">
+                        <div class="form-outline">
+                          {{ form.password1 }}
+                          <label
+                            class="form-label"
+                            for="{{ form.password1.id_for_label }}"
+                            >password
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-md-6 mb-4 pb-2">
+                        <div class="form-outline">
+                          {{ form.password2 }}
+                          <label
+                            class="form-label"
+                            for="{{ form.password2.id_for_label }}"
+                          >
+                            confirm password
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-6 bg-indigo text-white">
+                  <div class="p-5">
+                    <h3 class="fw-normal mb-5">Address</h3>
+                    <div class="row">
+                      <div class="col-md-6 mb-4 pb-2">
+                        <div class="form-outline form-white">
+                          {{form.street_address}}
+                          <label
+                            class="form-label"
+                            for="{{ form.street_address.id_for_label }}"
+                            >Street</label
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6 mb-4 pb-2">
+                        <div class="form-outline">
+                          {{ form.city }}
+                          <label
+                            class="form-label"
+                            for="{{ form.city.id_for_label }}"
+                            >city
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-md-6 mb-4 pb-2">
+                        <div class="form-outline">
+                          {{ form.state }}
+                          <label
+                            class="form-label"
+                            for="{{ form.state.id_for_label }}"
+                            >state</label
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6 mb-4 pb-2">
+                        <div class="form-outline form-white">
+                          {{ form.zip_code }}
+                          <label
+                            class="form-label"
+                            for="{{ state.zip_code.id_for_label }}"
+                            >zip code</label
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-6 mb-4 pb-2">
+                        <div class="form-outline form-white">
+                          {{ form.phone_number }}
+                          <label
+                            class="form-label"
+                            for="{{ form.phone_number.id_for_label }}"
+                            >phone number</label
+                          >
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- <div class="mb-4">
+                    <div class="form-outline form-white">
+                      <input
+                        type="text"
+                        id="form3Examplea9"
+                        class="form-control form-control-lg"
+                      />
+                      <label class="form-label" for="form3Examplea9"
+                        >Your Email</label
+                      >
+                    </div>
+                  </div> -->
+
+                    <div
+                      class="form-check d-flex justify-content-start mb-4 pb-3"
+                    >
+                      <input
+                        class="form-check-input me-3"
+                        type="checkbox"
+                        value=""
+                        id="form2Example3c"
+                      />
+                      <label
+                        class="form-check-label text-white"
+                        for="form2Example3"
+                      >
+                        I do accept the
+                        <a href="#!" class="text-white"
+                          ><u>Terms and Conditions</u></a
+                        >
+                        of your site.
+                      </label>
+                    </div>
+
+                    <input
+                      type="submit"
+                      class="btn btn-light btn-lg"
+                      data-mdb-ripple-color="dark"
+                      value="Register"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- <script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const searchClient = algoliasearch(
+      "LDJ25YAUCQ",
+      "4875d6c8510e7c2f5fde508d1850016c"
+    );
+
+    const placesAutocomplete = places({
+      appId: "LDJ25YAUCQ",
+      apiKey: "4875d6c8510e7c2f5fde508d1850016c",
+      container: document.querySelector("#id_street_address"),
+      templates: {
+        value(suggestion) {
+          return suggestion.name;
+        },
+      },
+    });
+
+    placesAutocomplete.on("change", function (event) {
+      const suggestion = event.suggestion;
+      const streetInput = document.getElementById("id_street_address");
+      const cityInput = document.getElementById("id_city");
+      const stateInput = document.getElementById("id_state");
+      const zipCodeInput = document.getElementById("id_zip_code");
+
+      streetInput.value = suggestion.name || "";
+      cityInput.value = suggestion.city || "";
+      stateInput.value = suggestion.administrative || "";
+      zipCodeInput.value = suggestion.postcode || "";
+    });
+  });
+</script> -->
+
+{% endblock %}

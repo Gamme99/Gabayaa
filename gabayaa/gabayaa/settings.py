@@ -36,6 +36,13 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+AUTH_USER_MODEL = "dukkaana.Customer"
+
+AUTHENTICATION_BACKENDS = {
+    'django.contrib.auth.backends.AllowAllUsersModelBackend',
+    'dukkaana.backends.CaseInsensitiveModelBackend'
+}
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

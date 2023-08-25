@@ -4,9 +4,25 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
+from ..user_form import CustomerForm, LoginForm
+from django.contrib.auth import login
+
 
 def base(request):
-    username = request.GET.get('username')
+    username = request.user.username
+    user_id = request.user.pk
+    print("username: ", username)
+    print("id: ", user_id)
+
+    if username == []:
+        print("[]")
+    if username == {}:
+        print("curly")
+    if username == "":
+        print("empty string")
+    if username == None:
+        print("none")
+
     return render(request, 'base.html', {'username': username})
 
 
@@ -20,6 +36,8 @@ def manager(request):
 
 def logoutManager(request):
     logout(request)
+    request.session['cart'] = {}
+    request.session['total_price'] = 0.0
     return redirect("login")
 
 
@@ -43,7 +61,7 @@ def register(request):
 
 def loginManager(request):
     if request.method == 'POST':
-        print("valid form ")
+        # print("valid form ")
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             print("here")
@@ -54,14 +72,73 @@ def loginManager(request):
                 login(request, user)
 
                 print("user that logged in ", request.user)
+                request.session['cart'] = {}
+                request.session['total_price'] = 0.0
                 return redirect('manager')
             else:
                 print("user is NONE")
+        else:
+            messages.error(request, 'Invalid form. Please correct the errors.')
+
     else:
         print("invlaid form ")
 
         form = AuthenticationForm()
-        messages.error(request, 'Invalid form. Please correct the errors.')
+        messages.error(request, 'NOT a post method')
 
     context = {'form': form}
     return render(request, 'manager/login.html', context)
+
+
+def login_customer(request):
+    if request.method == 'POST':
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            # Redirect to a success page or home page
+            # Replace 'home' with your actual home URL name
+            return redirect('base')
+        else:
+            # print("Form Errors:", form.errors)  # Debugging line
+            messages.error(request, 'Invalid form. Please correct the errors.')
+    else:
+        messages.error(request, 'method is not post')
+        form = LoginForm()
+
+    return render(request, 'customerAuthentication/login.html', {'form': form})
+
+
+def register_customer(request):
+    form = CustomerForm()
+
+    if request.method == "POST":
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(
+                request, 'Registration successful. Please log in.')
+            # return redirect('login')
+        else:
+            messages.error(
+                request, ' this is Invalid form . Please correct the errors.')
+            # print(form.errors)
+    else:
+        print("request method is get")
+        initial_data = {
+            'username': 'Galmo',
+            'email': 'Galmo@example.com',
+            'first_name': 'Galmo',
+            'last_name': 'Said',
+            'password1': 'Dikicha@23',
+            'password2': 'Dikicha@23',
+            'street_address': '123 main st',
+            'city': 'Seattle',
+            'state': 'WA',
+            'zip_code': '98118',
+            'phone_number': '0000000000',
+
+        }
+        form = CustomerForm(initial=initial_data)
+    context = {'form': form}
+    return render(request, 'customerAuthentication/register.html', context)

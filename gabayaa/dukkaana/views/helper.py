@@ -7,7 +7,7 @@ def calculate_item_count(cart):
         quantity = item.get('quantity')
         item_count += quantity
 
-    print("total: ", item_count)
+    # print("total: ", item_count)
     return item_count
 
 

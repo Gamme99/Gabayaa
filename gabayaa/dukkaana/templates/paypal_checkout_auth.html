@@ -15,16 +15,16 @@
         </tr>
       </thead>
       <tbody>
-        {% for item_id, item in cart.items %}
+        {% for item in cart %}
         <tr>
-          <td>{{ item.name }}</td>
-          <td>${{ item.price }}</td>
-          <td>{{ item.quantity }}</td>
+          <td>{{item.product.name}}</td>
+          <td>${{item.product.price}}</td>
+          <td>{{item.quantity}}</td>
         </tr>
         {% endfor %}
         <tr>
           <th>Total</th>
-          <th colspan="2">${{ total_price }}</th>
+          <th colspan="2">${{total_price}}</th>
         </tr>
       </tbody>
     </table>
@@ -32,10 +32,4 @@
 
   <div class="text-center">{{ form.render }}</div>
 </div>
-
-{% else %}
-<div class="container">
-  <h1 class="text-center">PayPal Checkout</h1>
-  <p>Your cart is empty.</p>
-</div>
-{% endif %} {% endblock %}
+{% else %} {% endif %} {% endblock %}

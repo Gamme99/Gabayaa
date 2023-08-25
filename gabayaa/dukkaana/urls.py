@@ -11,6 +11,9 @@ urlpatterns = [
     path('manager', authenticate_views.manager, name='manager'),
     path('login', authenticate_views.loginManager, name='login'),
     path('register', authenticate_views.register, name='register'),
+    path('customer/register', authenticate_views.register_customer,
+         name='register_customer'),
+    path('customer/login', authenticate_views.login_customer, name='login_customer'),
     path('logout', authenticate_views.logoutManager, name='logout'),
 
     path('shoes', product_views.shoes, name='shoes'),
@@ -22,6 +25,7 @@ urlpatterns = [
          product_views.product_info, name='product_info'),
 
     path('cart', cart_views.cart, name='cart'),
+    #     path('mycart', cart_views.cart, name='mycart'),
     path('add_to_cart<str:category>/<str:id>/',
          cart_views.add_to_cart, name='add_to_cart'),
     path('remove_cart_item<str:id>/',
@@ -34,7 +38,7 @@ urlpatterns = [
          cart_views.edit_quantity, name='edit_quantity'),
 
 
-    path('checkout', payment_views.checkout, name='checkout'),
+    path('checkout', payment_views.stripeCheckout, name='checkout'),
     path('paypal_checkout', payment_views.paypal_checkout, name='paypal_checkout'),
     path('checkout/success', payment_views.checkout_success, name='success'),
     path('checkout/cancel', payment_views.checkout_cancel, name='cancel'),
