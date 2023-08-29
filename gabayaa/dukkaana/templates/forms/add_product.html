@@ -1,10 +1,22 @@
 {% extends 'nav.html' %} {% block content %}
 <div class="container d-flex justify-content-center align-items-center vh-100">
   <div class="text-center">
-    <h1>{{ category }} Form</h1>
+    <h1>Product Form</h1>
   </div>
 </div>
 
+<br />
+{% if messages %}
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <ul class="messages list-group">
+      {% for message in messages %}
+      <li class="list-group-item bg-success">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
 <br />
 
 <div class="container d-flex justify-content-center align-items-center vh-100">
@@ -39,7 +51,11 @@
     />
     <br />
     <br />
-    <button class="btn btn-lg btn-info rounded-pill shadow-sm" type="submit">
+    <button
+      class="btn btn-lg btn-info rounded-pill shadow-sm"
+      type="submit"
+      name="submit"
+    >
       Submit
     </button>
   </form>

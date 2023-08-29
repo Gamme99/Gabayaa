@@ -68,7 +68,7 @@ class Product(models.Model):
     )
     category = models.CharField(max_length=200, null=True, choices=CATEGORY)
     name = models.CharField(max_length=200, null=True)
-    price = models.FloatField(null=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True)
     description = models.CharField(max_length=200, null=True)
     image = models.CharField(max_length=200, null=True, blank=True)
     date_added = models.DateTimeField(auto_now_add=True, null=True)
@@ -137,3 +137,31 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.product} for {self.cart}"
+
+
+class Order(models.Model):
+    # user = models.CharField(get_user_model(), on_delete=models.CASCADE, null=True)
+    # CharField to store user information
+    user = models.CharField(max_length=255)
+    order_date = models.DateTimeField(auto_now_add=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    shipping_address = models.TextField()
+    status = models.CharField(max_length=20, choices=(
+        ('Pending', 'Pending'),
+        ('Shipped', 'Shipped'),
+        ('Delivered', 'Delivered'),
+        ('Cancelled', 'Cancelled'),
+    ), default='Pending')
+
+    def __str__(self):
+        return f"Order {self.pk} - {self.user}"
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    product_name = models.CharField(max_length=255)
+    quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.product_name} for ({self.order.user})"

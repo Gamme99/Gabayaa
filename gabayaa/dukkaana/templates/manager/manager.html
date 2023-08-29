@@ -2,6 +2,21 @@
 
 <div class="container">
   <h2>Hello, {{ request.user }}!</h2>
+
+  <!-- Product Management -->
+  <div class="form-group">
+    <form
+      method="post"
+      action="{% url 'view_products' %}"
+      enctype="multipart/form-data"
+      class="form-card"
+    >
+      {% csrf_token %}
+      <button class="btn btn-primary add-button" type="submit">
+        Product List
+      </button>
+    </form>
+  </div>
   <form
     method="post"
     action="{% url 'add_product' %}"
@@ -10,7 +25,8 @@
   >
     {% csrf_token %}
     <div class="card-body">
-      <h5 class="card-title">Select the Product Category:</h5>
+      <h5 class="card-title">Product Management:</h5>
+
       <div class="form-group">
         <button
           class="btn btn-primary add-button"
@@ -43,17 +59,35 @@
       </div>
     </div>
   </form>
-</div>
 
-<br />
-<form
-  method="post"
-  action="{% url 'view_products' %}"
-  enctype="multipart/form-data"
-  class="form-card"
->
-  {% csrf_token %}
-  <button class="view-button" type="submit">View Products</button>
-</form>
+  <!-- User Management -->
+  <form method="post" action="#" enctype="multipart/form-data" class="card">
+    {% csrf_token %}
+    <div class="card-body">
+      <h5 class="card-title">User Management:</h5>
+      <!-- Add user management form elements here -->
+    </div>
+  </form>
+
+  <!-- Order Management -->
+  <form method="post" action="#" enctype="multipart/form-data" class="card">
+    {% csrf_token %}
+    <div class="card-body">
+      <h5 class="card-title">Order Management:</h5>
+      <!-- Add order management form elements here -->
+    </div>
+  </form>
+
+  <!-- Promotions & Discounts -->
+  <form method="post" action="#" enctype="multipart/form-data" class="card">
+    {% csrf_token %}
+    <div class="card-body">
+      <h5 class="card-title">Promotions & Discounts:</h5>
+      <!-- Add promotions & discounts form elements here -->
+    </div>
+  </form>
+
+  <!-- Other sections can be added as needed -->
+</div>
 
 {% endblock %}

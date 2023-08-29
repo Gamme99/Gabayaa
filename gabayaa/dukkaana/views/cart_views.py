@@ -9,19 +9,21 @@ import json
 
 def cart(request):
     total_price = 0.0
-    cart = []
+    cart = {}
     if request.user.is_authenticated:
         # If the user is logged in, get their user-specific cart from the database
         user_cart, created = Cart.objects.get_or_create(user=request.user)
         cart_items = CartItem.objects.filter(cart=user_cart)
         item_count = user_cart.total_items
-        total_price = user_cart.total_price
+        total_price = round(user_cart.total_price, 2)
         cart = cart_items
         context = {'cart': cart, 'item_count': item_count,
                    'total_price': total_price}
         return render(request, 'mycart.html', context)
     else:
+        # request.session['cart'] = {}
         cart_json = request.session.get('cart', {})
+        print("cart_json:", cart_json)
         cart = convertToDict(cart_json)
 
         # Calculate the total price
@@ -29,7 +31,7 @@ def cart(request):
             price = item.get('price')
             quantity = item.get('quantity')
             item_total = price * quantity
-            total_price += item_total
+            total_price += round(item_total, 2)
 
         # Add the total price to the cart session
         request.session['total_price'] = total_price
@@ -38,6 +40,9 @@ def cart(request):
 
     context = {'cart': cart, 'item_count': item_count,
                'total_price': total_price}
+
+    request.session['from_cart'] = True
+
     return render(request, 'cart.html', context)
 
 
@@ -91,6 +96,7 @@ def add_to_cart(request, category, id):
     else:
         product = Product.objects.get(id=id)
         if product:
+            # request.session['cart'] = {}
             cart_json = request.session.get('cart', {})
             cart = convertToDict(cart_json)
             cart_key = product.id
@@ -102,19 +108,21 @@ def add_to_cart(request, category, id):
                 'category': category,
                 'name': product.name,
                 'quantity': 1,
-                'price': product.price,
+                'price': float(product.price),
                 'image': product.image,
                 # 'image': str(product.image),
             }
-            cart[cart_key] = cart_item
+            print("cart_json: ", cart_json)
             print("just added now: ", cart_item)
+            print("cart: ", cart)
+            cart[cart_key] = cart_item
             cart_json = json.dumps(cart)
             request.session['cart'] = cart_json
             messages.success(request, 'item successfully added to cart!')
         else:
             messages.error(
                 request, 'IDK what went wrong sorry couldnt add item to cart :(')
-        request.session['cart'] = cart
+        # request.session['cart'] = cart
     return redirect(request.META['HTTP_REFERER'])
 
 
@@ -137,19 +145,18 @@ def increase_quantity(request, id):
         print("cart: ", cart)
         print("cart item: ", cart_item)
         update_cart_quantity(cart)
-
-    if 'cart' in request.session:
-        cart_json = request.session['cart']
-        # Parse the cart JSON string into a dictionary
-        cart = convertToDict(cart_json)
-        if id in cart:
-            cart[id]['quantity'] += 1
-            # Convert the updated cart dictionary back to a JSON string
-            cart_json = json.dumps(cart)
-            request.session['cart'] = cart_json
-
-        else:
-            messages.error(request, 'Error increasing quantity!')
+    else:
+        if 'cart' in request.session:
+            cart_json = request.session['cart']
+            # Parse the cart JSON string into a dictionary
+            cart = convertToDict(cart_json)
+            if id in cart:
+                cart[id]['quantity'] += 1
+                # Convert the updated cart dictionary back to a JSON string
+                cart_json = json.dumps(cart)
+                request.session['cart'] = cart_json
+            else:
+                messages.error(request, 'Error increasing quantity!')
     return redirect('cart')
 
 
@@ -175,21 +182,21 @@ def decrease_quantity(request, id):
             print("cart: ", cart)
             print("cart item: ", cart_item)
             update_cart_quantity(cart)
+    else:
+        if 'cart' in request.session:
+            cart_json = request.session['cart']
+            cart = convertToDict(cart_json)
+            if id in cart:
+                if (cart[id]['quantity'] == 1):
+                    print(" deleted item ")
+                    remove_cart_item(request, id)
+                    return redirect('cart')
 
-    if 'cart' in request.session:
-        cart_json = request.session['cart']
-        cart = convertToDict(cart_json)
-        if id in cart:
-            if (cart[id]['quantity'] == 1):
-                print(" deleted item ")
-                remove_cart_item(request, id)
-                return redirect('cart')
-
-            cart[id]['quantity'] -= 1
-            cart_json = json.dumps(cart)
-            request.session['cart'] = cart_json
-        else:
-            messages.error(request, 'item to decrease quantity not found!')
+                cart[id]['quantity'] -= 1
+                cart_json = json.dumps(cart)
+                request.session['cart'] = cart_json
+            else:
+                messages.error(request, 'item to decrease quantity not found!')
     return redirect('cart')
 
 
@@ -209,7 +216,7 @@ def edit_quantity(request, id):
             cart = Cart.objects.get(user=request.user)
 
             # Check if the product is already in the cart
-            cart_item, created = CartItem.objects.get(
+            cart_item = CartItem.objects.get(
                 cart=cart, product=product)
 
             # Increment the quantity of the cart item and save it

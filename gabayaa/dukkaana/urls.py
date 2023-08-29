@@ -26,15 +26,15 @@ urlpatterns = [
 
     path('cart', cart_views.cart, name='cart'),
     #     path('mycart', cart_views.cart, name='mycart'),
-    path('add_to_cart<str:category>/<str:id>/',
+    path('add_to_cart/<str:category>/<str:id>/',
          cart_views.add_to_cart, name='add_to_cart'),
-    path('remove_cart_item<str:id>/',
+    path('remove_cart_item/<str:id>/',
          cart_views.remove_cart_item, name='remove_cart_item'),
-    path('decrease_quantity<str:id>',
+    path('decrease_quantity/<str:id>',
          cart_views.decrease_quantity, name='decrease_quantity'),
-    path('increase_quantity<str:id>',
+    path('increase_quantity/<str:id>',
          cart_views.increase_quantity, name='increase_quantity'),
-    path('edit_quantity<str:id>',
+    path('edit_quantity/<str:id>',
          cart_views.edit_quantity, name='edit_quantity'),
 
 
@@ -47,5 +47,9 @@ urlpatterns = [
     path('manager/add_product', manager_views.add_product, name='add_product'),
     path('manager/view_products', manager_views.view_products, name='view_products'),
     path('search/', manager_views.search_products, name='search_products'),
+    path('manager/edit_product/<str:id>',
+         manager_views.edit_product, name='edit_product'),
+    path('manager/delete_product/<str:id>',
+         manager_views.delete_product, name='delete_product'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

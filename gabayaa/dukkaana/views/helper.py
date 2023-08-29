@@ -12,8 +12,11 @@ def calculate_item_count(cart):
 
 
 def convertToDict(cart_json):
+    cart = {}
     if isinstance(cart_json, str):
+        # print("isinstance")
         cart = json.loads(cart_json)
     else:
+        # print("is not, its dictionary")
         cart = cart_json
     return cart

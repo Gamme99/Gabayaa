@@ -6,29 +6,60 @@ from paypal.standard.forms import PayPalPaymentsForm
 import uuid
 import stripe
 import requests
-from ..models import Product, CartItem, Cart
+from ..models import Product, CartItem, Cart, Order, OrderItem
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 def stripeCheckout(request):
+
+    if not request.session.get('from_cart', False):
+        # Redirect to the cart page if the user didn't come from the cart
+        return redirect('cart')
+
     YOUR_DOMAIN = 'http://127.0.0.1:8000/checkout'
-    cart_json = request.session.get('cart', {})
-    cart = convertToDict(cart_json)
     line_items = []
-    for item_id, item in cart.items():
-        line_items.append({
-            'price_data': {
-                'currency': 'usd',
-                # Stripe accepts prices in cents
-                'unit_amount': int(item['price'] * 100),
-                'product_data': {
-                    'name': item['name'],
+
+    if request.user.is_authenticated:
+        user_cart, created = Cart.objects.get_or_create(user=request.user)
+        cart_items = CartItem.objects.filter(cart=user_cart)
+        # item_total = user_cart.total_items
+        # total_price = user_cart.total_price
+
+        cart = cart_items
+
+        for item in cart:
+            line_items.append({
+                'price_data': {
+                    'currency': 'usd',
+                    # Stripe accepts prices in cents
+                    'unit_amount': int(item.product.price * 100),
+                    'product_data': {
+                        'name': item.product.name,
+                    },
                 },
-            },
-            'quantity': item['quantity'],
-        })
+                'quantity': item.quantity,
+            })
+
+    else:
+        # request.session['cart'] = {}
+        cart_json = request.session.get('cart', {})
+        print("cart_jason", cart_json)
+        cart = convertToDict(cart_json)
+
+        for item_id, item in cart.items():
+            line_items.append({
+                'price_data': {
+                    'currency': 'usd',
+                    # Stripe accepts prices in cents
+                    'unit_amount': int(item['price'] * 100),
+                    'product_data': {
+                        'name': item['name'],
+                    },
+                },
+                'quantity': item['quantity'],
+            })
 
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
@@ -37,8 +68,10 @@ def stripeCheckout(request):
         success_url=YOUR_DOMAIN + '/success',
         cancel_url=YOUR_DOMAIN + '/cancel',
     )
+    # placing the new order
 
     # return JsonResponse({'sessionId': session.id})
+    request.session['from_checkout'] = True
     return redirect(session['url'], code=303)
 
 
@@ -83,8 +116,6 @@ def paypal_checkout(request):
 
         cart = cart_items
 
-        # item_details = []
-
         for item in cart:
             # Assuming your CartItem model has a ForeignKey to a Product model
             item_name = item.product.name
@@ -101,13 +132,9 @@ def paypal_checkout(request):
         form = PayPalPaymentsForm()
         checkout = "paypal_checkout_auth.html"
 
-        # context = {"form": form, "cart": cart, "total_price": total_price,
-        #            'PAYPAL_CLIENT_ID': settings.PAYPAL_CLIENT_ID}
-        # return render(request, 'paypal_checkout_auth.html', context)
-
     else:
         print("host:", host)
-        # Get the cart items from the session
+
         cart_json = request.session.get('cart', {})
         cart = convertToDict(cart_json)
         item_total = calculate_item_count(cart)
@@ -141,6 +168,8 @@ def paypal_checkout(request):
     }
     form = PayPalPaymentsForm(initial=paypal_dict)
 
+    request.session['from_checkout'] = True
+
     context = {"form": form, "cart": cart, "total_price": total_price,
                'PAYPAL_CLIENT_ID': settings.PAYPAL_CLIENT_ID}
     return render(request, checkout, context)
@@ -150,9 +179,84 @@ def paypal_return(request):
     return redirect('base')
 
 
+def create_order(request):
+
+    if request.user.is_authenticated:
+        # Authenticated user
+        user_cart = Cart.objects.get(user=request.user)
+        cart_items = CartItem.objects.filter(cart=user_cart)
+        cart = cart_items
+        # item_total = user_cart.total_items
+
+        total_price = user_cart.total_price
+        user_address = request.user  # Assuming the User model has address-related fields
+        shipping_address = f"{user_address.street_address}, {user_address.city}, {user_address.state}, {user_address.zip_code}"
+
+        new_order = Order.objects.create(
+            user=request.user,
+            total_amount=total_price,
+            shipping_address=shipping_address,
+            status='Pending'  # Set the order status
+        )
+        # Create order items based on the cart items
+        for item in cart:
+            OrderItem.objects.create(
+                order=new_order,
+                product_name=item.product.name,
+                quantity=item.quantity,
+                price=item.product.price
+            )
+
+        # Save the order
+        # new_order.save()
+        user_cart.delete()  # Delete cart items for the authenticated user
+
+    else:  # on guest user
+        cart_json = request.session.get('cart', {})
+        cart = convertToDict(cart_json)
+        total_price = request.session.get('total_price', {})
+        shipping_address = "guest address"
+
+        new_order = Order.objects.create(
+            user="guest",  # No associated user for guest orders
+            total_amount=total_price,
+            shipping_address=shipping_address,
+            status='Pending'
+        )
+
+        for item_id, item in cart.items():
+            OrderItem.objects.create(
+                order=new_order,
+                product_name=item['name'],
+                quantity=item['quantity'],
+                price=item['price']
+            )
+
+        # new_order.save()
+        request.session['cart'] = {}
+        request.session['total_price'] = 0.00
+
+
 def checkout_success(request):
-    request.session['cart'] = {}
-    return render(request, 'success.html')
+
+    # print("request: ", request)
+    print("from checkout: ", request.session.get('from_checkout'))
+    if request.session.get('from_checkout'):
+        create_order(request)
+        if request.user.is_authenticated:
+            customer = request.user.username
+            email = request.user.email
+        else:
+            customer = "guest"
+            email = "guest@email.com"
+
+        context = {"customer": customer, "email": email}
+    else:
+        return redirect("cart")
+
+    # reset from_checkout session value
+    request.session['from_checkout'] = False
+    return render(request, 'success.html', context)
 
 
 def checkout_cancel(request):

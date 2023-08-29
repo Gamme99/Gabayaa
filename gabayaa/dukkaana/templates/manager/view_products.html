@@ -1,6 +1,18 @@
 {% extends 'nav.html' %} {% block content %}
 
 <br />
+{% if messages %}
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <ul class="messages list-group">
+      {% for message in messages %}
+      <li class="list-group-item bg-success">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+<br />
 <div class="container">
   <form
     method="GET"
@@ -23,5 +35,175 @@
   </form>
 </div>
 <br />
+
+<div class="container">
+  <!-- Collapsible Categories Row -->
+  <div class="row">
+    <h3>
+      <button
+        class="btn btn-link"
+        type="button"
+        data-toggle="collapse"
+        data-target="#cloth"
+      >
+        Cloths
+      </button>
+
+      <button
+        class="btn btn-link"
+        type="button"
+        data-toggle="collapse"
+        data-target="#shoe"
+      >
+        Shoes
+      </button>
+      <button
+        class="btn btn-link"
+        type="button"
+        data-toggle="collapse"
+        data-target="#electronic"
+      >
+        Electronics
+      </button>
+    </h3>
+  </div>
+
+  <div id="cloth" class="collapse">
+    {% for product in cloth_products %}
+
+    <div class="row mb-4 bg-white d-flex align-items-center">
+      <div class="col-md-3">
+        <img
+          class="img-fluid"
+          src="../../../media/{{ product.image }}"
+          alt="{{ product.name }}"
+        />
+      </div>
+      <div class="col-md-3">
+        <h5 class="card-title text-muted">{{ product.name }}</h5>
+      </div>
+      <div class="col-md-3">
+        <p class="card-text"><strong>${{ product.price }}</strong></p>
+      </div>
+      <form method="post" action="{% url 'edit_product' product.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-info btn-sm px-2 mr-1">
+          Edit
+        </button>
+        <input type="hidden" name="category" value="{{ product.category }}" />
+        <input
+          type="hidden"
+          name="description"
+          value="{{ product.description }}"
+        />
+        <input type="hidden" name="name" value="{{ product.name }}" />
+        <input type="hidden" name="price" value="{{ product.price }}" />
+      </form>
+      <form method="post" action="{% url 'delete_product' product.id %}">
+        {% csrf_token %}
+        <button
+          type="submit"
+          class="btn btn-danger btn-sm"
+          onclick="return confirm('Are you sure you want to delete this product?')"
+        >
+          Delete
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div id="shoe" class="collapse">
+    {% for product in shoe_products %}
+    <div class="row mb-4 bg-white d-flex align-items-center">
+      <div class="col-md-3">
+        <img
+          class="img-fluid"
+          src="../../../media/{{ product.image }}"
+          alt="{{ product.name }}"
+        />
+      </div>
+      <div class="col-md-3">
+        <h5 class="card-title text-muted">{{ product.name }}</h5>
+      </div>
+      <div class="col-md-3">
+        <p class="card-text"><strong>${{ product.price }}</strong></p>
+      </div>
+      <form method="post" action="{% url 'edit_product' product.id %}">
+        {% csrf_token %}
+
+        <button type="submit" class="btn btn-info btn-sm px-2 mr-1">
+          Edit
+        </button>
+        <input type="hidden" name="category" value="{{ product.category }}" />
+        <input
+          type="hidden"
+          name="description"
+          value="{{ product.description }}"
+        />
+        <input type="hidden" name="name" value="{{ product.name }}" />
+        <input type="hidden" name="price" value="{{ product.price }}" />
+      </form>
+      <form method="post" action="{% url 'delete_product' product.id %}">
+        {% csrf_token %}
+
+        <button
+          type="submit"
+          class="btn btn-danger btn-sm"
+          onclick="return confirm('Are you sure you want to delete this product?')"
+        >
+          Delete
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div id="electronic" class="collapse">
+    {% for product in electronic_products %}
+    <div class="row mb-4 bg-white d-flex align-items-center">
+      <div class="col-md-3">
+        <img
+          class="img-fluid"
+          src="../../../media/{{ product.image }}"
+          alt="{{ product.name }}"
+        />
+      </div>
+      <div class="col-md-3">
+        <h5 class="card-title text-muted">{{ product.name }}</h5>
+      </div>
+      <div class="col-md-3">
+        <p class="card-text"><strong>${{ product.price }}</strong></p>
+      </div>
+      <form method="post" action="{% url 'edit_product' product.id %}">
+        {% csrf_token %}
+
+        <button type="submit" class="btn btn-info btn-sm px-2 mr-1">
+          Edit
+        </button>
+        <input type="hidden" name="category" value="{{ product.category }}" />
+        <input
+          type="hidden"
+          name="description"
+          value="{{ product.description }}"
+        />
+        <input type="hidden" name="name" value="{{ product.name }}" />
+        <input type="hidden" name="price" value="{{ product.price }}" />
+      </form>
+      <form method="post" action="{% url 'delete_product' product.id %}">
+        {% csrf_token %}
+
+        <button
+          type="submit"
+          class="btn btn-danger btn-sm"
+          onclick="return confirm('Are you sure you want to delete this product?')"
+        >
+          Delete
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>
 
 {% endblock %}
