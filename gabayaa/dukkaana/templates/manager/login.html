@@ -1,11 +1,4 @@
 {% extends 'nav.html' %} {% block content %}
-<!-- <form method="post" action="">
-  {% csrf_token %}{{ form.as_p}}
-  <input type="submit" value="Login" />
-</form>
-
-<label> dont have an account yet?</label>
-<a href="{%  url 'register' %}">register</a> -->
 
 <link
   rel="stylesheet"
@@ -139,7 +132,7 @@
       <div class="mt-4">
         <div class="d-flex justify-content-center links">
           Don't have an account?
-          <a href="{% url 'register' %}" class="ml-2">Sign Up</a>
+          <a href="{% url 'register_customer' %}" class="ml-2">Sign Up</a>
         </div>
       </div>
     </div>

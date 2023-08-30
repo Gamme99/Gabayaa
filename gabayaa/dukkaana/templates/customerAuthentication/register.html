@@ -282,37 +282,4 @@
   </div>
 </section>
 
-<!-- <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const searchClient = algoliasearch(
-      "LDJ25YAUCQ",
-      "4875d6c8510e7c2f5fde508d1850016c"
-    );
-
-    const placesAutocomplete = places({
-      appId: "LDJ25YAUCQ",
-      apiKey: "4875d6c8510e7c2f5fde508d1850016c",
-      container: document.querySelector("#id_street_address"),
-      templates: {
-        value(suggestion) {
-          return suggestion.name;
-        },
-      },
-    });
-
-    placesAutocomplete.on("change", function (event) {
-      const suggestion = event.suggestion;
-      const streetInput = document.getElementById("id_street_address");
-      const cityInput = document.getElementById("id_city");
-      const stateInput = document.getElementById("id_state");
-      const zipCodeInput = document.getElementById("id_zip_code");
-
-      streetInput.value = suggestion.name || "";
-      cityInput.value = suggestion.city || "";
-      stateInput.value = suggestion.administrative || "";
-      zipCodeInput.value = suggestion.postcode || "";
-    });
-  });
-</script> -->
-
 {% endblock %}

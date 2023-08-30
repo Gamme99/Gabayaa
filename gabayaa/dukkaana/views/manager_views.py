@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib import messages
 # from ..models import Cloth, Shoe, Electronic, ProductImage
 # from ..forms import ProductForm, ShoeForm, ClothForm, ElectronicForm
-from ..models import ProductImage, Product
+from ..models import ProductImage, Product, Customer
 from ..forms import ProductForm
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -46,6 +46,29 @@ def search_products(request):
     }
 
     return render(request, 'search_results.html', context)
+
+
+def search_customer(request):
+    query = request.GET.get('q')  # Get the search query from the request
+
+    if query:
+        # Perform a search based on the query across all three models
+        product = Customer.objects.filter(
+            Q(name__icontains=query) | Q(description__icontains=query)
+        )
+
+        # Combine the results from all three models
+        results = list(product)
+    else:
+        # If no query is provided, return all products
+        results = []
+
+    context = {
+        'results': results,
+        'query': query
+    }
+
+    return render(request, 'customer_list.html', context)
 
 
 # saves images and connect to right item through its primary key
@@ -142,3 +165,46 @@ def delete_product(request, id):
 
     # Redirect to the search page in case of a GET request
     return redirect("search_product")
+
+
+# def customer_list(request):
+#     query = request.GET.get('q')
+#     customers = Customer.objects.all()
+
+#     if query:
+#         customers = Customer.objects.filter(username__icontains=query)
+
+#     # Convert the customers data to a list of dictionaries
+#     customer_data = [{"id": customer.id, "username": customer.username,
+#                       "is_superuser": customer.is_superuser} for customer in customers]
+
+#     return JsonResponse({'customers': customer_data})
+
+# def customer_list(request):
+#     query = request.GET.get('q')
+#     customers = Customer.objects.all()
+
+#     if query:
+#         customers = Customer.objects.filter(username__icontains=query)
+
+#     context = {
+#         'customers': customers,
+#         'query': query,
+#     }
+
+#     return render(request, 'manager/customer_list.html', context)
+
+def customer_list(request):
+    customers = Customer.objects.all()
+    # print("customer: ", customers)
+    context = {'customers': customers}
+    return render(request, 'manager/customer_list.html', context)
+
+
+def customer_search(request):
+    query = request.GET.get('q', '')
+    customers = Customer.objects.filter(username__icontains=query)
+    # You can filter customers based on your search criteria
+    data = [{'id': customer.id, 'username': customer.username,
+             'is_superuser': customer.is_superuser} for customer in customers]
+    return JsonResponse({'customers': data})

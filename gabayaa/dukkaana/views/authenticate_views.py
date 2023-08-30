@@ -1,10 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
-from ..user_form import CustomerForm, LoginForm
+from ..user_form import CustomerForm, CustomerUpdateForm, LoginForm
+from ..models import Customer
 from django.contrib.auth import login
 
 
@@ -14,14 +15,14 @@ def base(request):
     print("username: ", username)
     print("id: ", user_id)
 
-    if username == []:
-        print("[]")
-    if username == {}:
-        print("curly")
-    if username == "":
-        print("empty string")
-    if username == None:
-        print("none")
+    # if username == []:
+    #     print("[]")
+    # if username == {}:
+    #     print("curly")
+    # if username == "":
+    #     print("empty string")
+    # if username == None:
+    #     print("none")
 
     return render(request, 'base.html', {'username': username})
 
@@ -142,3 +143,23 @@ def register_customer(request):
         form = CustomerForm(initial=initial_data)
     context = {'form': form}
     return render(request, 'customerAuthentication/register.html', context)
+
+
+def update_customer(request, id):
+    customer = get_object_or_404(Customer, id=id)
+
+    if request.method == 'POST':
+        form = CustomerUpdateForm(request.POST, instance=customer)
+        if form.is_valid():
+            form.save()
+            print(" update successfuly")
+            # return redirect('customer_detail', id=id)
+            messages.success(
+                request, 'successfully update customer info')
+    else:
+        # If it's a GET request, create a form instance with the customer's data
+        print("its get method")
+        form = CustomerUpdateForm(instance=customer)
+
+    context = {'form': form, 'customer': customer}
+    return render(request, 'manager/update_customer.html', context)
