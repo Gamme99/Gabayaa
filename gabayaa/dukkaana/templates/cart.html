@@ -1,199 +1,138 @@
-{% extends 'nav.html' %} {% block content %}
+{% extends 'base.html' %}
 
-<div class="container">
-  <div class="row">
-    <div class="col-md-8 offset-md-2">
-      <h1 class="text-center text-primary mt-4 mb-5">Cart</h1>
-    </div>
-  </div>
-  {% if messages %}
-  <div class="row">
-    <div class="col-md-8 offset-md-2">
-      <ul class="messages list-group">
-        {% for message in messages %}
-        <li class="list-group-item bg-warning">{{ message }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-  </div>
-  {% endif %} {% if cart %}
+{% block title %}Shopping Cart - Gabayaa{% endblock %}
 
-  <section
-    class="h-100 h-custom"
-    style="background-color: #ffffff; border-radius: 15px"
-  >
-    <div class="card-body p-0">
-      <div class="row g-0">
-        <div class="col-lg-8">
-          <div class="p-5">
-            <div class="d-flex justify-content-between align-items-center mb-5">
-              <h1 class="fw-bold mb-0 text-black">Shopping Cart</h1>
+{% block content %}
+{% csrf_token %}
+<div class="bg-white">
+    <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
+        <div class="max-w-2xl mx-auto lg:max-w-none">
+            <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Shopping Cart</h1>
+            <p class="mt-4 text-sm text-gray-500">Check your items and proceed to checkout.</p>
 
-              <h6 class="mb-0 text-muted">{{ item_count }} items</h6>
+            <div class="mt-12 lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start xl:gap-x-16">
+                <section aria-labelledby="cart-heading" class="lg:col-span-7">
+                    <h2 id="cart-heading" class="sr-only">Items in your shopping cart</h2>
+
+                    <ul role="list" class="border-t border-b border-gray-200 divide-y divide-gray-200">
+                        {% for item in cart_items %}
+                        <li class="flex py-6 sm:py-10">
+                            <div class="flex-shrink-0">
+                                <img src="{{ item.product.get_first_image.image.url }}" alt="{{ item.product.name }}" class="w-24 h-24 rounded-md object-center object-cover sm:w-32 sm:h-32">
+                            </div>
+
+                            <div class="ml-4 flex-1 flex flex-col justify-between sm:ml-6">
+                                <div class="relative pr-9 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:pr-0">
+                                    <div>
+                                        <div class="flex justify-between">
+                                            <h3 class="text-sm">
+                                                <a href="{% url 'product_info' item.product.category item.product.id %}" class="font-medium text-gray-700 hover:text-gray-800">
+                                                    {{ item.product.name }}
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <p class="mt-1 text-sm font-medium text-gray-900">${{ item.unit_price }}</p>
+                                    </div>
+
+                                    <div class="mt-4 sm:mt-0 sm:pr-9">
+                                        <label for="quantity-{{ item.id }}" class="sr-only">Quantity, {{ item.product.name }}</label>
+                                        <select id="quantity-{{ item.id }}" name="quantity" class="max-w-full rounded-md border border-gray-300 py-1.5 text-base leading-5 font-medium text-gray-700 text-left shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" onchange="updateQuantity('{{ item.id }}', this.value)">
+                                            {% for i in "123456789" %}
+                                            <option value="{{ forloop.counter }}" {% if forloop.counter == item.quantity %}selected{% endif %}>{{ forloop.counter }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="absolute top-0 right-0">
+                                            <button type="button" class="-m-2 p-2 inline-flex text-gray-400 hover:text-gray-500" onclick="removeItem('{{ item.id }}')">
+                                                <span class="sr-only">Remove</span>
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p class="mt-4 flex text-sm text-gray-500 space-x-2">
+                                    <span>Total: ${{ item.get_total_price }}</span>
+                                </p>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="py-6">
+                            <p class="text-gray-500 text-center">Your cart is empty</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+
+                <!-- Order summary -->
+                <section aria-labelledby="summary-heading" class="mt-16 bg-gray-50 rounded-lg px-4 py-6 sm:p-6 lg:p-8 lg:mt-0 lg:col-span-5">
+                    <h2 id="summary-heading" class="text-lg font-medium text-gray-900">Order summary</h2>
+
+                    <dl class="mt-6 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <dt class="text-sm text-gray-600">Subtotal</dt>
+                            <dd class="text-sm font-medium text-gray-900">${{ cart.total_price }}</dd>
+                        </div>
+                        <div class="border-t border-gray-200 pt-4 flex items-center justify-between">
+                            <dt class="text-sm text-gray-600">Transaction fee</dt>
+                            <dd class="text-sm font-medium text-gray-900">${{ cart.transaction_fee }}</dd>
+                        </div>
+                        <div class="border-t border-gray-200 pt-4 flex items-center justify-between">
+                            <dt class="text-base font-medium text-gray-900">Order total</dt>
+                            <dd class="text-base font-medium text-gray-900">${{ cart.total_price|add:cart.transaction_fee }}</dd>
+                        </div>
+                    </dl>
+
+                    <div class="mt-6">
+                        {% if cart_items %}
+                        <div class="space-y-4">
+                            <a href="{% url 'stripe_checkout' %}" class="w-full bg-indigo-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Checkout with Stripe
+                            </a>
+                            <a href="{% url 'paypal_checkout' %}" class="w-full bg-blue-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Checkout with PayPal
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
             </div>
-            <hr class="my-4" />
-
-            {% for item_id, item in cart.items %}
-            <div
-              class="row mb-4 d-flex justify-content-between align-items-center"
-            >
-              <div class="col-md-2 col-lg-2 col-xl-2">
-                <a href="{% url 'product_info' item.category  item.id %}">
-                  {% if item.image %}
-
-                  <img
-                    src="media/{{ item.image }}"
-                    class="img-fluid rounded-3"
-                    alt="{{ item.name }}"
-                  />
-                  {% else %}
-                  <img
-                    src="media/images/no_image.png"
-                    class="img-fluid rounded-3"
-                    alt="{{ item.name }}"
-                  />
-
-                  {% endif %}
-                </a>
-              </div>
-              <div class="col-md-3 col-lg-3 col-xl-3">
-                <h6 class="text-muted">{{ item.category }}</h6>
-                <h6 class="text-black mb-0">{{ item.name }}</h6>
-              </div>
-              <div class="col-md-3 col-lg-3 col-xl-2 d-flex">
-                <form method="post" action="#" enctype="multipart/form-data">
-                  <a
-                    href="{% url 'decrease_quantity' item.id %}"
-                    class="btn btn-link px-2"
-                    onclick="this.parentNode.querySelector('input[type=number]').stepDown()"
-                  >
-                    <i class="fa fa-minus"></i>
-                  </a>
-                </form>
-                <form
-                  method="post"
-                  action="{% url 'edit_quantity' item.id %}"
-                  enctype="multipart/form-data"
-                >
-                  {% csrf_token %}
-                  <input
-                    id="form1"
-                    min="0"
-                    name="item{{ item.id }}"
-                    value="{{ item.quantity }}"
-                    type="number"
-                    class="form-control form-control-sm"
-                    style="width: 50px"
-                    onchange="handleQuantityChange('{{ item.id }}', this.value)"
-                  />
-                </form>
-                <form method="post" action="#" enctype="multipart/form-data">
-                  <a
-                    href="{% url 'increase_quantity' item.id %}"
-                    class="btn btn-link px-2"
-                    onclick="this.parentNode.querySelector('input[type=number]').stepUp()"
-                  >
-                    <i class="fa fa-plus"></i>
-                  </a>
-                </form>
-              </div>
-              <div class="col-md-3 col-lg-2 col-xl-2 offset-lg-1">
-                <h6 class="mb-0" id="itemPrice{{item.id}}">
-                  $ {{ item.price }}
-                </h6>
-              </div>
-              <div class="col-md-3 col-lg-1 col-xl-1 text-end">
-                <a
-                  href="{% url 'remove_cart_item' item.id %}"
-                  class="text-muted"
-                  ><i
-                    class="fa fa-trash"
-                    aria-hidden="false"
-                    style="color: red"
-                  ></i>
-                </a>
-              </div>
-            </div>
-            <hr class="my-4" />
-            {% endfor %}
-
-            <div class="pt-5">
-              <h6 class="mb-0">
-                <a href="#!" class="text-body"
-                  ><i class="fas fa-long-arrow-alt-left me-2"></i>Back to
-                  shop</a
-                >
-              </h6>
-            </div>
-          </div>
         </div>
-        <div class="col-lg-4 bg-grey">
-          <div class="p-5">
-            <h3 class="fw-bold mb-5 mt-2 pt-1">Summary</h3>
-            <hr class="my-4" />
-
-            <div class="d-flex justify-content-between mb-4">
-              <h5 class="text-uppercase">Items {{ item_count }}</h5>
-              <h5 id="totalPrice">${{ total_price }}</h5>
-            </div>
-
-            <h5 class="text-uppercase mb-3">Shipping</h5>
-
-            <div class="mb-4 pb-2">
-              <select class="select">
-                <option value="1">Standard-Delivery- $5.00</option>
-                <option value="2">Two</option>
-                <option value="3">Three</option>
-                <option value="4">Four</option>
-              </select>
-            </div>
-
-            <h5 class="text-uppercase mb-3">Give code</h5>
-
-            <div class="mb-5">
-              <div class="form-outline">
-                <input
-                  type="text"
-                  id="form3Examplea2"
-                  class="form-control form-control-lg"
-                />
-                <label class="form-label" for="form3Examplea2"
-                  >Enter your code</label
-                >
-              </div>
-            </div>
-
-            <hr class="my-4" />
-
-            <div class="d-flex justify-content-between mb-5">
-              <h5 class="text-uppercase">Total price</h5>
-              <h5>$ {{ total_price }}</h5>
-            </div>
-
-            <a
-              href="{% url 'checkout'%}"
-              class="btn btn-dark btn-block btn-lg"
-              data-mdb-ripple-color="dark"
-            >
-              Stripe checkout
-            </a>
-            <a
-              href="{% url 'paypal_checkout'%}"
-              class="btn btn-dark btn-block btn-lg"
-              data-mdb-ripple-color="dark"
-            >
-              PayPal Checkout
-            </a>
-
-            <br />
-          </div>
-        </div>
-      </div>
     </div>
-  </section>
-  {% else %}
-  <h6 class="text-center mt-4 mb-5">Cart is empty</h6>
-  {% endif %}
 </div>
+{% endblock %}
 
+{% block extra_js %}
+<script>
+function updateQuantity(itemId, quantity) {
+    fetch(`/cart/update/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `quantity=${quantity}`
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.reload();
+        }
+    });
+}
+
+function removeItem(itemId) {
+    if (confirm('Are you sure you want to remove this item?')) {
+        fetch(`/cart/remove/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.reload();
+            }
+        });
+    }
+}
+</script>
 {% endblock %}

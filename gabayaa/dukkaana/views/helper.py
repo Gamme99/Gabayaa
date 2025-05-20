@@ -1,5 +1,18 @@
 import json
 
+from django.contrib.auth.decorators import user_passes_test
+from django.urls import reverse_lazy
+
+
+def is_superuser(user):
+    return user.is_authenticated and user.is_superuser
+
+
+def superuser_required(view_func):
+    decorated_view = user_passes_test(
+        is_superuser, login_url=reverse_lazy('login'))(view_func)
+    return decorated_view
+
 
 def calculate_item_count(cart):
     item_count = 0

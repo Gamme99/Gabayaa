@@ -1,0 +1,222 @@
+{% extends 'base.html' %} {% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Welcome Section -->
+  <div class="bg-white shadow rounded-lg p-6 mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+      Welcome, {{ request.user }}!
+    </h1>
+    <p class="text-gray-600">
+      Manage your store's products, customers, and orders from this dashboard.
+    </p>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white shadow rounded-lg p-6">
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-indigo-100 text-indigo-600">
+          <i class="fas fa-box text-2xl"></i>
+        </div>
+        <div class="ml-4">
+          <h2 class="text-lg font-semibold text-gray-900">Total Products</h2>
+          <p class="text-2xl font-bold text-indigo-600">{{ total_products }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white shadow rounded-lg p-6">
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-green-100 text-green-600">
+          <i class="fas fa-users text-2xl"></i>
+        </div>
+        <div class="ml-4">
+          <h2 class="text-lg font-semibold text-gray-900">Total Customers</h2>
+          <p class="text-2xl font-bold text-green-600">{{ total_customers }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white shadow rounded-lg p-6">
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+          <i class="fas fa-shopping-cart text-2xl"></i>
+        </div>
+        <div class="ml-4">
+          <h2 class="text-lg font-semibold text-gray-900">Total Orders</h2>
+          <p class="text-2xl font-bold text-blue-600">{{ total_orders }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-white shadow rounded-lg p-6">
+      <div class="flex items-center">
+        <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+          <i class="fas fa-tags text-2xl"></i>
+        </div>
+        <div class="ml-4">
+          <h2 class="text-lg font-semibold text-gray-900">Active Promos</h2>
+          <p class="text-2xl font-bold text-yellow-600">{{ active_promos }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Actions -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- Product Management -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="p-6 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">Product Management</h2>
+      </div>
+      <div class="p-6 space-y-4">
+        <a
+          href="{% url 'view_products' %}"
+          class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+        >
+          View All Products
+        </a>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <a
+            href="{% url 'add_product' %}?category=Kophee"
+            class="block text-center bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Add Kophee
+          </a>
+          <a
+            href="{% url 'add_product' %}?category=Huccuu"
+            class="block text-center bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Add Huccuu
+          </a>
+          <a
+            href="{% url 'add_product' %}?category=Electrooniksii"
+            class="block text-center bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Add Electrooniksii
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer Management -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="p-6 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">Customer Management</h2>
+      </div>
+      <div class="p-6 space-y-4">
+        <a
+          href="{% url 'customer_list' %}"
+          class="block w-full text-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+        >
+          View All Customers
+        </a>
+        <a
+          href="{% url 'register_customer' %}"
+          class="block w-full text-center bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors"
+        >
+          Register New Customer
+        </a>
+      </div>
+    </div>
+
+    <!-- Order Management -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="p-6 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">Order Management</h2>
+      </div>
+      <div class="p-6 space-y-4">
+        <a
+          href="{% url 'order_list' %}"
+          class="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          View All Orders
+        </a>
+        <div class="grid grid-cols-2 gap-4">
+          <a
+            href="{% url 'order_list' %}?status=pending"
+            class="block text-center bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Pending Orders
+          </a>
+          <a
+            href="{% url 'order_list' %}?status=completed"
+            class="block text-center bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Completed Orders
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Promotions & Discounts -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="p-6 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">
+          Promotions & Discounts
+        </h2>
+      </div>
+      <div class="p-6 space-y-4">
+        <a
+          href="{% url 'create_promo_code' %}"
+          class="block w-full text-center bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
+        >
+          Create New Promo Code
+        </a>
+        <a
+          href="#"
+          class="block w-full text-center bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors"
+        >
+          View Active Promotions
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="mt-8 bg-white shadow rounded-lg overflow-hidden">
+    <div class="p-6 border-b border-gray-200">
+      <h2 class="text-xl font-semibold text-gray-900">Recent Activity</h2>
+    </div>
+    <div class="p-6">
+      <div class="flow-root">
+        <ul class="-mb-8">
+          {% for activity in recent_activities %}
+          <li>
+            <div class="relative pb-8">
+              <span
+                class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200"
+                aria-hidden="true"
+              ></span>
+              <div class="relative flex space-x-3">
+                <div>
+                  <span
+                    class="h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center ring-8 ring-white"
+                  >
+                    <i class="fas fa-{{ activity.icon }} text-white"></i>
+                  </span>
+                </div>
+                <div
+                  class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4"
+                >
+                  <div>
+                    <p class="text-sm text-gray-500">
+                      {{ activity.description }}
+                    </p>
+                  </div>
+                  <div
+                    class="text-right text-sm whitespace-nowrap text-gray-500"
+                  >
+                    <time datetime="{{ activity.timestamp }}"
+                      >{{ activity.timestamp|timesince }} ago</time
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+          {% empty %}
+          <li class="text-center text-gray-500 py-4">No recent activity</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

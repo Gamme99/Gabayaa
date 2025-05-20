@@ -1,43 +1,212 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpRequest
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse, HttpRequest, Http404
+from django.core.paginator import Paginator
+from django.views.decorators.cache import cache_page
+from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
+from django.contrib import messages
 
 # from ..models import Cloth, Shoe, Electronic, ProductImage, Product
-from ..models import ProductImage, Product
+from ..models import ProductImage, Product, Review
+
+ITEMS_PER_PAGE = 12
+
+
+@cache_page(60 * 15)  # Cache for 15 minutes
+def home(request):
+    """
+    View to display the homepage with featured products and categories.
+    """
+    try:
+        featured_products = Product.objects.filter(
+            is_active=True
+        ).order_by('-rating', '-created_at')[:8]
+
+        context = {
+            'featured_products': featured_products,
+        }
+
+        return render(request, 'base.html', context)
+
+    except Exception as e:
+        return render(request, 'error.html', {
+            'error_message': _('An error occurred while loading the homepage.')
+        })
+
+
+@cache_page(60 * 15)  # Cache for 15 minutes
+def product_list(request, category):
+    """
+    View to display a list of products in a specific category.
+    """
+    try:
+        # Get all active products in the category
+        products = Product.objects.filter(
+            category=category,
+            is_active=True
+        ).select_related().prefetch_related('images')
+        # Apply search filter if provided
+        search_query = request.GET.get('search', '')
+        if search_query:
+            products = products.filter(
+                Q(name__icontains=search_query) |
+                Q(description__icontains=search_query)
+            )
+
+        # Apply sorting
+        sort_by = request.GET.get('sort', '-created_at')
+        valid_sort_fields = ['name', '-name', 'price',
+                             '-price', 'rating', '-rating', '-created_at']
+        if sort_by in valid_sort_fields:
+            products = products.order_by(sort_by)
+
+        # Apply pagination
+        paginator = Paginator(products, ITEMS_PER_PAGE)
+        page_number = request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            'products': page_obj,
+            'category': category,
+            'search_query': search_query,
+            'sort_by': sort_by,
+        }
+
+        return render(request, 'view/products.html', context)
+
+    except Exception as e:
+        messages.error(request, _('An error occurred while loading products.'))
+        return redirect('home')
+        # return render(request, 'view/products.html', context)
 
 
 def cloths(request):
-    products = Product.objects.filter(category="Cloth")
-    return render(request, 'view/products.html', {'products': products})
+    """
+    View to display all cloth products.
+    """
+    print("attempting to display cloths")
+    return product_list(request, 'Huccuu')
 
 
 def shoes(request):
-    products = Product.objects.filter(category="Shoe")
-    return render(request, 'view/products.html', {'products': products})
+    """
+    View to display all shoe products.
+    """
+    return product_list(request, 'Kophee')
 
 
 def electronics(request):
-    products = Product.objects.filter(category="Electronic")
-    return render(request, 'view/products.html', {'products': products})
+    """
+    View to display all electronic products.
+    """
+    return product_list(request, 'Electrooniksii')
 
 
 def renting(request):
-    return render(request, 'renting.html', {})
+    """
+    View for the renting page.
+    """
+    try:
+        # Add renting-specific logic here
+        return render(request, 'renting.html', {})
+    except Exception as e:
+        # Log the error here
+        return render(request, 'error.html', {
+            'error_message': _('An error occurred while loading the renting page.')
+        })
 
 
 def buying(request):
-    return render(request, 'buying.html', {})
+    """
+    View for the buying page.
+    """
+    try:
+        # Add buying-specific logic here
+        return render(request, 'buying.html', {})
+    except Exception as e:
+        # Log the error here
+        return render(request, 'error.html', {
+            'error_message': _('An error occurred while loading the buying page.')
+        })
 
 
 def product_info(request, category, id):
+    """
+    View to display detailed information about a specific product.
+    """
+    try:
+        product = get_object_or_404(
+            Product.objects.select_related().prefetch_related('images', 'reviews'),
+            id=id,
+            category=category,
+            is_active=True
+        )
 
-    print("------------d in here: ", id)
-    product = None
+        # Get related products from the same category
+        related_products = Product.objects.filter(
+            category=category,
+            is_active=True
+        ).exclude(id=id).select_related().prefetch_related('images')[:4]
 
-    product = Product.objects.get(id=id)
+        # Get reviews for the product
+        reviews = product.reviews.all().select_related('user').order_by('-created_at')
 
-    if product:
-        # Retrieve all ProductImage instances associated with the product
-        product_images = ProductImage.objects.filter(productId=id)
-        return render(request, 'view/product_info.html', {'product': product, 'product_images': product_images})
-    else:
-        return HttpResponse('Product not found')
+        context = {
+            'product': product,
+            'related_products': related_products,
+            'reviews': reviews,
+        }
+
+        return render(request, 'view/product_info.html', context)
+
+    except Http404:
+        messages.error(request, _('Product not found.'))
+        return redirect('home')
+    except Exception as e:
+        messages.error(request, _(
+            'An error occurred while loading the product details.'))
+        return redirect('home')
+
+
+def search_results(request):
+    """
+    View to display search results across all products.
+    """
+    try:
+        search_query = request.GET.get('q', '')
+        if not search_query:
+            return render(request, 'view/search_results.html', {
+                'products': [],
+                'search_query': '',
+                'message': _('Please enter a search term.')
+            })
+
+        products = Product.objects.filter(
+            is_active=True
+        ).filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        ).select_related().prefetch_related('images')
+
+        sort_by = request.GET.get('sort', '-created_at')
+        valid_sort_fields = ['name', '-name', 'price',
+                             '-price', 'rating', '-rating', '-created_at']
+        if sort_by in valid_sort_fields:
+            products = products.order_by(sort_by)
+
+        paginator = Paginator(products, ITEMS_PER_PAGE)
+        page_number = request.GET.get('page', 1)
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            'products': page_obj,
+            'search_query': search_query,
+            'sort_by': sort_by,
+        }
+
+        return render(request, 'view/search_results.html', context)
+
+    except Exception as e:
+        return render(request, 'error.html', {
+            'error_message': _('An error occurred while searching products.')
+        })

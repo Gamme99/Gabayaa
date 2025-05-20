@@ -3,66 +3,85 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.utils.translation import gettext_lazy as _
 
 from ..user_form import CustomerForm, CustomerUpdateForm, LoginForm
-from ..models import Customer
+from ..models import Customer, Product, Order, PromoCode
 from django.contrib.auth import login
+from .helper import superuser_required
 
 
 def base(request):
-    username = request.user.username
-    user_id = request.user.pk
-    print("username: ", username)
-    print("id: ", user_id)
-
-    # if username == []:
-    #     print("[]")
-    # if username == {}:
-    #     print("curly")
-    # if username == "":
-    #     print("empty string")
-    # if username == None:
-    #     print("none")
-
-    return render(request, 'base.html', {'username': username})
+    """
+    Redirect to home page since we're using it as the landing page.
+    """
+    return redirect('')
 
 
-@login_required(login_url="login")
+# @login_required(login_url="login")
+@superuser_required
 def manager(request):
-    if request.user.is_authenticated:
-        return render(request, 'manager/manager.html', {})
-
-    return redirect('login')
+    """
+    View for the manager dashboard.
+    """
+    try:
+        if request.user.is_authenticated:
+            context = {
+                'total_products': Product.objects.count(),
+                'total_customers': Customer.objects.count(),
+                'total_orders': Order.objects.count(),
+                'active_promos': PromoCode.objects.filter(is_active=True).count(),
+                'recent_activities': []  # You can implement this later if needed
+            }
+            return render(request, 'auth/manager.html', context)
+        return redirect('login')
+    except Exception as e:
+        return render(request, 'error.html', {
+            'error_message': _('An error occurred while loading the manager dashboard.')
+        })
 
 
 def logoutManager(request):
     logout(request)
     request.session['cart'] = {}
-    request.session['total_price'] = 0.0
+    request.session['total_price'] = 0.00
+    request.session['subtotal'] = 0.00
+    request.session['promo_discount'] = 0.00
+    request.session['total'] = 0.00
+    request.session['discount'] = 0.00
+    request.session['item_count'] = None
     return redirect("login")
 
 
 def register(request):
-    form = UserCreationForm()
-
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(
-                request, 'Registration successful. Please log in.')
-            # return redirect('login')
+    """
+    View for manager registration.
+    """
+    try:
+        if request.method == "POST":
+            form = UserCreationForm(request.POST)
+            if form.is_valid():
+                form.save()
+                messages.success(
+                    request, 'Registration successful. Please log in.')
+                return redirect('login')
+            else:
+                messages.error(
+                    request, 'Invalid form. Please correct the errors.')
         else:
-            messages.error(request, 'Invalid form. Please correct the errors.')
-    else:
-        print("request method is get")
-    context = {'form': form}
-    return render(request, 'manager/register.html', context)
+            form = UserCreationForm()
+
+        context = {'form': form}
+        return render(request, 'auth/register.html', context)
+    except Exception as e:
+        return render(request, 'error.html', {
+            'error_message': _('An error occurred during registration.')
+        })
 
 
 def loginManager(request):
+    print("login manager --------------- ")
     if request.method == 'POST':
-        # print("valid form ")
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             print("here")
@@ -74,24 +93,27 @@ def loginManager(request):
 
                 print("user that logged in ", request.user)
                 request.session['cart'] = {}
-                request.session['total_price'] = 0.0
+                request.session['total_price'] = 0.00
+                request.session['subtotal'] = 0.00
+                request.session['promo_discount'] = 0.00
+                request.session['total'] = 0.00
+                request.session['discount'] = 0.00
+                request.session['item_count'] = None
                 return redirect('manager')
             else:
                 print("user is NONE")
         else:
             messages.error(request, 'Invalid form. Please correct the errors.')
-
     else:
-        print("invlaid form ")
-
         form = AuthenticationForm()
-        messages.error(request, 'NOT a post method')
 
     context = {'form': form}
-    return render(request, 'manager/login.html', context)
+    return render(request, 'auth/login.html', context)
 
 
 def login_customer(request):
+    print("login customer --------------- ")
+
     if request.method == 'POST':
         form = LoginForm(request, data=request.POST)
         if form.is_valid():
@@ -107,23 +129,20 @@ def login_customer(request):
         messages.error(request, 'method is not post')
         form = LoginForm()
 
-    return render(request, 'customerAuthentication/login.html', {'form': form})
+    return render(request, 'auth/login.html', {'form': form})
 
 
 def register_customer(request):
     form = CustomerForm()
-
+    print("REGISTER CUS")
     if request.method == "POST":
         form = CustomerForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(
                 request, 'Registration successful. Please log in.')
-            # return redirect('login')
-        else:
-            messages.error(
-                request, ' this is Invalid form . Please correct the errors.')
-            # print(form.errors)
+
+        print(form.errors)
     else:
         print("request method is get")
         initial_data = {
@@ -131,8 +150,8 @@ def register_customer(request):
             'email': 'Galmo@example.com',
             'first_name': 'Galmo',
             'last_name': 'Said',
-            'password1': 'Dikicha@23',
-            'password2': 'Dikicha@23',
+            'password1': 'Summer@23',
+            'password2': 'Summer@23',
             'street_address': '123 main st',
             'city': 'Seattle',
             'state': 'WA',
@@ -153,13 +172,28 @@ def update_customer(request, id):
         if form.is_valid():
             form.save()
             print(" update successfuly")
-            # return redirect('customer_detail', id=id)
             messages.success(
                 request, 'successfully update customer info')
     else:
-        # If it's a GET request, create a form instance with the customer's data
         print("its get method")
         form = CustomerUpdateForm(instance=customer)
 
     context = {'form': form, 'customer': customer}
-    return render(request, 'manager/update_customer.html', context)
+    return render(request, 'auth/update_customer.html', context)
+
+
+def logout_customer(request):
+    """
+    View to handle customer logout.
+    """
+    logout(request)
+    # Clear cart session data
+    request.session['cart'] = {}
+    request.session['total_price'] = 0.00
+    request.session['subtotal'] = 0.00
+    request.session['promo_discount'] = 0.00
+    request.session['total'] = 0.00
+    request.session['discount'] = 0.00
+    request.session['item_count'] = None
+    messages.success(request, 'You have been successfully logged out.')
+    return redirect('home')
