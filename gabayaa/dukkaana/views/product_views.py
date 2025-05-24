@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, HttpRequest, Http404
+from django.contrib.auth.decorators import login_required
+
 from django.core.paginator import Paginator
 from django.views.decorators.cache import cache_page
 from django.db.models import Q
@@ -8,6 +10,7 @@ from django.contrib import messages
 
 # from ..models import Cloth, Shoe, Electronic, ProductImage, Product
 from ..models import ProductImage, Product, Review
+from ..forms import ReviewForm
 
 ITEMS_PER_PAGE = 12
 
@@ -156,16 +159,46 @@ def product_info(request, category, id):
             'related_products': related_products,
             'reviews': reviews,
         }
+        print("context", context)
 
         return render(request, 'view/product_info.html', context)
 
     except Http404:
+        print("Http404")
         messages.error(request, _('Product not found.'))
         return redirect('home')
     except Exception as e:
+        print("Exception", e)
         messages.error(request, _(
             'An error occurred while loading the product details.'))
         return redirect('home')
+
+
+@login_required
+def add_review(request, product_id):
+    """
+    View to add a review to a product.
+    """
+    product = get_object_or_404(Product, id=product_id)
+    existing_review = Review.objects.filter(
+        product=product, user=request.user).first()
+    if existing_review:
+        messages.error(request, _('You have already reviewed this product.'))
+        return redirect('product_info', category=product.category, id=product.id)
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.product_id = product_id
+            review.user = request.user
+            review.save()
+            messages.success(request, _('Review added successfully.'))
+            return redirect('product_info', category=product.category, id=product.id)
+        else:
+            messages.error(request, _('Please correct the errors below.'))
+    else:
+        form = ReviewForm()
+    return render(request, 'view/add_review.html', {'product_id': product_id})
 
 
 def search_results(request):

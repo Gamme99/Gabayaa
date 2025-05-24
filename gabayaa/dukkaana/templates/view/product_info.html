@@ -1,5 +1,5 @@
 {% extends 'base.html' %} 
-{% block title %}{{ product.name }} - Gabayaa{% endblock %} 
+{% block title %} {{ product.name }} - Gabayaa {% endblock %} 
 {% block content %}
 <div class="bg-white">
   <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
@@ -187,11 +187,7 @@
       {% if user.is_authenticated %}
       <div class="mt-10">
         <h3 class="text-lg font-medium text-gray-900">Write a review</h3>
-        <form
-          method="POST"
-          action="{% url 'add_review' product.id %}"
-          class="mt-6"
-        >
+        <form method="POST" action="{% url 'add_review' product.id %}" class="mt-6">
           {% csrf_token %}
           <div class="space-y-6">
             <div>

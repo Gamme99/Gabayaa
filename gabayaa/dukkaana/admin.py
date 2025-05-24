@@ -1,6 +1,6 @@
 from django.contrib import admin
 # from .models import Shoe, Cloth, Electronic, ProductImage, Customer, Product
-from .models import ProductImage, Customer, Product, Cart, CartItem, Order, OrderItem, PromoCode
+from .models import ProductImage, Customer, Product, Cart, CartItem, Order, OrderItem, PromoCode, Review
 # from .user_model import Customer
 # Register your models here.
 
@@ -21,3 +21,4 @@ admin.site.register(Order)
 admin.site.register(PromoCode)
 
 admin.site.register(Customer)
+admin.site.register(Review)

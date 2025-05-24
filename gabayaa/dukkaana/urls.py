@@ -24,7 +24,8 @@ urlpatterns = [
     path('product_info/<str:category>/<str:id>/',
          product_views.product_info, name='product_info'),
     path('search', product_views.search_results, name='search_results'),
-
+    path('add_review/<str:product_id>/',
+         product_views.add_review, name='add_review'),
     path('cart', cart_views.view_cart, name='cart'),
     path('add_to_cart/<uuid:product_id>/',
          cart_views.add_to_cart, name='add_to_cart'),

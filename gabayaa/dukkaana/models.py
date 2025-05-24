@@ -486,3 +486,17 @@ class Review(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.product.update_rating()
+
+# class Review(models.Model):
+#     product = models.ForeignKey(
+#         Product,
+#         on_delete=models.CASCADE,
+#         related_name='reviews',
+#         verbose_name=_('product')
+#     )
+#     user = models.ForeignKey(Customer, on_delete=models.CASCADE)
+#     rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
+#     comment = models.TextField()
+#     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+#     class Meta:
+#         unique_together = ('product', 'user')  # One review per user per product
