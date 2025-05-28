@@ -1,0 +1,211 @@
+{% extends 'nav.html' %} {% load static %} {% block content %}
+<div class="row justify-content-center py-4">
+  <h2>Orders List</h2>
+</div>
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <form method="GET" id="search-form" action="#" class="form-inline">
+        <div class="input-group w-100">
+          <input
+            class="form-control"
+            type="search"
+            name="q"
+            id="search-input"
+            placeholder="Search"
+            aria-label="Search"
+            value=""
+          />
+          <div class="input-group-append">
+            <button class="btn btn-outline-success" type="button">
+              Search
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <p class="query-search" id="search-query-message"></p>
+</div>
+<br />
+<div id="search-results" style="margin-left: 5%; margin-right: 5%"></div>
+
+<div
+  id="orders-list"
+  class="container mx-auto"
+  style="margin-left: 5%; margin-right: 5%"
+>
+  {% for order in orders %}
+  <div class="bg-light col-md-12 mb-4">
+    <div class="row justify-content-around bg-primary text-white">
+      <p>{{ order.user }}</p>
+      <p>{{ order.order_date|date:"Y-m-d" }}</p>
+      <p>${{ order.total_amount }}</p>
+      <p>{{ order.status }}</p>
+    </div>
+    <div class="row justify-content-center">
+      <button
+        class="btn btn-link"
+        type="button"
+        data-toggle="collapse"
+        data-target="#items{{ order.id }}"
+      >
+        Items
+      </button>
+    </div>
+    <div class="col-md-12 mt-3 collapse" id="items{{ order.id }}">
+      <table class="table bg-white table-bordered">
+        <thead>
+          <tr>
+            <th>Products</th>
+            <th>Quantity</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order_item in order.orderitem_set.all %}
+          <tr>
+            <td>{{ order_item.product_name }}</td>
+            <td>{{ order_item.quantity }}</td>
+            <td>${{ order_item.price }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="row justify-content-center pt-2">
+      <p class="pr-3"><strong> Shipping Address </strong></p>
+      <p>{{ order.shipping_address }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  $(document).ready(function () {
+    var typingTimer; // Timer identifier
+    var doneTypingInterval = 500; // Time in milliseconds
+
+    $("#search-input").on("input", function () {
+      clearTimeout(typingTimer);
+      var query = $(this).val();
+
+      if (query) {
+        typingTimer = setTimeout(function () {
+          performSearch(query);
+        }, doneTypingInterval);
+      } else {
+        $("#search-results").empty();
+      }
+    });
+
+    function performSearch(query) {
+      $.ajax({
+        url: "{% url 'order_list' %}",
+        data: { q: query },
+        dataType: "json",
+        success: function (data) {
+          // Clear any previous error messages
+          $("#error-message").remove();
+
+          var resultsContainer = $("#search-results");
+          resultsContainer.empty();
+
+          var ordersListContainer = $("#orders-list");
+          ordersListContainer.empty();
+
+          if (data.length === 0) {
+            resultsContainer.append("<p>No results found.</p>");
+          } else {
+            $.each(data, function (index, orderData) {
+              // Create HTML elements to display order and items
+              var orderElement = $("<div class='row mb-4 bg-info' ></div>");
+              var orderCard = $(
+                "<div class='col-md-12'><div class='card' ></div></div>"
+              );
+
+              var cardHeader = $(
+                "<div class='card-header bg-primary text-white'></div>"
+              );
+              var cardBody = $(
+                "<div class='card-body row justify-content-between'></div>"
+              );
+
+              // Populate card header and body with order information
+              cardBody.append("<p>" + orderData.user + "</p>");
+              cardBody.append("<p>" + orderData.order_date + "</p>");
+              cardBody.append("<p>$" + orderData.total_amount + "</p>");
+              cardBody.append("<p>" + orderData.status + "</p>");
+              cardHeader.append(cardBody);
+
+              orderCard.append(cardHeader);
+
+              var collapseButton = $(
+                "<button class='btn btn-link' type='button' data-toggle='collapse'></button>"
+              );
+              collapseButton.attr("data-target", "#items" + orderData.order_id);
+              collapseButton.text("Items");
+              orderCard.append(
+                "<div class='row justify-content-center'></div>"
+              );
+              orderCard.find(".row").append(collapseButton);
+
+              var itemsCollapse = $(
+                "<div class='col-md-12 mt-3 collapse'></div>"
+              );
+              itemsCollapse.attr("id", "items" + orderData.order_id);
+              var itemsCard = $(
+                "<div class='card'><table class='table table-bordered'></table></div>"
+              );
+
+              var itemsTable = itemsCard.find("table");
+              itemsTable.append(
+                "<thead><tr><th>Products</th><th>Quantity</th><th>Price</th></tr></thead>"
+              );
+
+              $.each(orderData.items, function (i, item) {
+                itemsTable.append(
+                  "<tr><td>" +
+                    item.product_name +
+                    "</td><td>" +
+                    item.quantity +
+                    "</td><td>$" +
+                    item.price +
+                    "</td></tr>"
+                );
+              });
+
+              itemsCollapse.append(itemsCard);
+              orderCard.append(itemsCollapse);
+
+              var addressRow = $(
+                "<div class='row justify-content-center pt-2'></div>"
+              );
+              addressRow.append(
+                "<p class='pr-3'><strong> Shipping Address </strong></p>"
+              );
+              addressRow.append("<p>" + orderData.shipping_address + "</p>");
+              orderCard.append(addressRow);
+
+              orderElement.append(orderCard);
+              resultsContainer.append(orderElement);
+            });
+          }
+        },
+        error: function (xhr, status, error) {
+          // Handle errors here
+          $("#error-message").remove();
+          var errorMessage = $(
+            "<p id='error-message'>An error occurred while fetching results.</p>"
+          );
+          $("#search-results").append(errorMessage);
+        },
+      });
+    }
+  });
+</script>
+
+{% endblock %}

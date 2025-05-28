@@ -206,8 +206,13 @@ class Cart(models.Model):
         Customer,
         on_delete=models.CASCADE,
         related_name='carts',
-        verbose_name=_('user')
+        verbose_name=_('user'),
+        blank=True,
+        null=True,
+
     )
+    session_key = models.CharField(
+        max_length=40, null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
     total_items = models.PositiveIntegerField(_('total items'), default=0)
@@ -244,10 +249,14 @@ class Cart(models.Model):
         items = self.items.all()
         self.total_items = sum(item.quantity for item in items)
         self.total_price = sum(item.get_total_price() for item in items)
+
         if self.promo_code and self.promo_code.is_active:
             discount = self.total_price * (self.promo_code.discount / 100)
             self.total_price -= discount
+
+        self.transaction_fee = (self.total_price * Decimal('0.03')).quantize(Decimal('0.01'))
         self.save()
+
 
 
 class CartItem(models.Model):

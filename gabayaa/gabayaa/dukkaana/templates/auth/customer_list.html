@@ -1,0 +1,73 @@
+{% extends 'nav.html' %} {% load static %} {% block content %}
+<div class="row justify-content-center py-4">
+  <h2>Customer List</h2>
+</div>
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <form
+        method="GET"
+        action="{% url 'customer_search' %}"
+        class="form-inline"
+      >
+        <div class="input-group w-100">
+          <input
+            class="form-control"
+            type="search"
+            name="q"
+            id="search-input"
+            placeholder="Search"
+            aria-label="Search"
+            value="{{ query }}"
+          />
+          <div class="input-group-append">
+            <button class="btn btn-outline-success" type="button">
+              Search
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="row justify-content-center">
+  <p class="query-search" id="search-query-message"></p>
+</div>
+<br />
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <ul
+        class="list-group"
+        id="search-results"
+        data-search-url="{% url 'customer_search' %}"
+      >
+        {% if query %}
+        <li class="list-group-item">Search results for: "{{ query }}"</li>
+        {% endif %} {% for customer in customers %}
+        <li class="list-group-item">
+          <a
+            href="{% url 'update_customer' customer.id %}"
+            class="user-link"
+            data-customer-url="{% url 'update_customer' customer.id %}"
+          >
+            {{ customer.username }}
+          </a>
+          <p class="list-group-item">
+            is super user - {{ customer.is_superuser }}
+          </p>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'js/search.js' %}"></script>
+<script>
+  // Store the update_customer URL as a data attribute
+  var updateCustomerUrl = "{% url 'update_customer' -1 %}"; // An empty placeholder for now
+  $("#search-results").attr("data-update-customer-url", updateCustomerUrl);
+</script>
+{% endblock %}

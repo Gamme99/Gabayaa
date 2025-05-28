@@ -1,0 +1,63 @@
+{% extends 'nav.html' %} {% block content %}
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="text-center">
+    <h1>Product Form</h1>
+  </div>
+</div>
+
+<br />
+{% if messages %}
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <ul class="messages list-group">
+      {% for message in messages %}
+      <li class="list-group-item bg-success">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endif %}
+<br />
+
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <form method="post" action="" enctype="multipart/form-data">
+    {% csrf_token %}
+    <!-- Render all form fields using a loop -->
+    {% for field in form %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}"
+        >{{ field.label }}{% if field.field.required %}
+        <span style="color: red">*</span>
+        {% endif %}</label
+      >
+      {% if field.name == 'description' %}
+      <textarea
+        id="{{ field.id_for_label }}"
+        name="{{ field.name }}"
+        class="form-control"
+        style="resize: both"
+      ></textarea>
+      {% else %} {{ field }} {% endif %}
+    </div>
+    {% endfor %}
+
+    <label for="images">Add more Pictures: </label>
+    <input
+      type="file"
+      name="images"
+      id="images"
+      value="Upload Pictures"
+      multiple
+    />
+    <br />
+    <br />
+    <button
+      class="btn btn-lg btn-info rounded-pill shadow-sm"
+      type="submit"
+      name="submit"
+    >
+      Submit
+    </button>
+  </form>
+</div>
+{% endblock %}

@@ -7,145 +7,77 @@ from django.utils.translation import gettext_lazy as _
 
 from ..user_form import CustomerForm, CustomerUpdateForm, LoginForm
 from ..models import Customer, Product, Order, PromoCode
-from django.contrib.auth import login
 from .helper import superuser_required
 
 
-def base(request):
-    """
-    Redirect to home page since we're using it as the landing page.
-    """
-    return redirect('')
+# def base(request):
+#     return redirect('home')
 
 
-# @login_required(login_url="login")
 @superuser_required
 def manager(request):
-    """
-    View for the manager dashboard.
-    """
     try:
-        if request.user.is_authenticated:
-            context = {
-                'total_products': Product.objects.count(),
-                'total_customers': Customer.objects.count(),
-                'total_orders': Order.objects.count(),
-                'active_promos': PromoCode.objects.filter(is_active=True).count(),
-                'recent_activities': []  # You can implement this later if needed
-            }
-            return render(request, 'auth/manager.html', context)
-        return redirect('login')
+        context = {
+            'total_products': Product.objects.count(),
+            'total_customers': Customer.objects.count(),
+            'total_orders': Order.objects.count(),
+            'active_promos': PromoCode.objects.filter(is_active=True).count(),
+            'recent_activities': []  # Optional
+        }
+        return render(request, 'auth/manager.html', context)
     except Exception as e:
         return render(request, 'error.html', {
             'error_message': _('An error occurred while loading the manager dashboard.')
         })
 
 
-def logoutManager(request):
-    logout(request)
-    request.session['cart'] = {}
-    request.session['total_price'] = 0.00
-    request.session['subtotal'] = 0.00
-    request.session['promo_discount'] = 0.00
-    request.session['total'] = 0.00
-    request.session['discount'] = 0.00
-    request.session['item_count'] = None
-    return redirect("login")
-
-
-def register(request):
+def login_view(request):
     """
-    View for manager registration.
+    Unified login for both customers and managers.
     """
-    try:
-        if request.method == "POST":
-            form = UserCreationForm(request.POST)
-            if form.is_valid():
-                form.save()
-                messages.success(
-                    request, 'Registration successful. Please log in.')
-                return redirect('login')
-            else:
-                messages.error(
-                    request, 'Invalid form. Please correct the errors.')
-        else:
-            form = UserCreationForm()
-
-        context = {'form': form}
-        return render(request, 'auth/register.html', context)
-    except Exception as e:
-        return render(request, 'error.html', {
-            'error_message': _('An error occurred during registration.')
-        })
-
-
-def loginManager(request):
-    print("login manager --------------- ")
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            print("here")
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-
-                print("user that logged in ", request.user)
-                request.session['cart'] = {}
-                request.session['total_price'] = 0.00
-                request.session['subtotal'] = 0.00
-                request.session['promo_discount'] = 0.00
-                request.session['total'] = 0.00
-                request.session['discount'] = 0.00
-                request.session['item_count'] = None
-                return redirect('manager')
-            else:
-                print("user is NONE")
-        else:
-            messages.error(request, 'Invalid form. Please correct the errors.')
-    else:
-        form = AuthenticationForm()
-
-    context = {'form': form}
-    return render(request, 'auth/login.html', context)
-
-
-def login_customer(request):
-    print("login customer --------------- ")
-
-    if request.method == 'POST':
-        form = LoginForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
+    form_class = LoginForm if request.method == 'POST' else AuthenticationForm
+    form = form_class(request, data=request.POST or None)
+    print("before condition")
+    if request.method == 'POST' and form.is_valid():
+        print("form is valid")
+        user = form.get_user() if hasattr(form, 'get_user') else authenticate(
+            request,
+            username=form.cleaned_data['username'],
+            password=form.cleaned_data['password']
+        )
+        print(f"user:  {user}")
+        if user:
             login(request, user)
-            # Redirect to a success page or home page
-            # Replace 'home' with your actual home URL name
-            return redirect('base')
-        else:
-            # print("Form Errors:", form.errors)  # Debugging line
-            messages.error(request, 'Invalid form. Please correct the errors.')
-    else:
-        messages.error(request, 'method is not post')
-        form = LoginForm()
+            request.session.update({
+                'cart': {},
+                'total_price': 0.00,
+                'subtotal': 0.00,
+                'promo_discount': 0.00,
+                'total': 0.00,
+                'discount': 0.00,
+                'item_count': None,
+            })
 
+            return redirect('manager' if user.is_superuser or user.is_staff else 'home')
+        messages.error(request, 'Invalid credentials.')
+    elif request.method != 'POST':
+        print(f"method is not post, its {request.method}")
+        messages.info(request, 'Please log in.')
+    print(f"its not post or valid {request.method}")
+    print(f"form: {form}")
     return render(request, 'auth/login.html', {'form': form})
 
 
-def register_customer(request):
-    form = CustomerForm()
-    print("REGISTER CUS")
-    if request.method == "POST":
-        form = CustomerForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(
-                request, 'Registration successful. Please log in.')
-
-        print(form.errors)
+def register_view(request):
+    """
+    Unified registration for customers (public) and managers (admin panel).
+    Use 'type' param to distinguish.
+    """
+    if request.GET.get('type') == 'manager':
+        form = UserCreationForm(request.POST or None)
+        template = 'auth/register.html'
     else:
-        print("request method is get")
-        initial_data = {
+        form = CustomerForm(request.POST or None, initial={
             'username': 'Galmo',
             'email': 'Galmo@example.com',
             'first_name': 'Galmo',
@@ -157,43 +89,45 @@ def register_customer(request):
             'state': 'WA',
             'zip_code': '98118',
             'phone_number': '0000000000',
+        }) if request.method != 'POST' else CustomerForm(request.POST)
+        template = 'customerAuthentication/register.html'
 
-        }
-        form = CustomerForm(initial=initial_data)
-    context = {'form': form}
-    return render(request, 'customerAuthentication/register.html', context)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Registration successful. Please log in.')
+        return redirect('login')
 
-
-def update_customer(request, id):
-    customer = get_object_or_404(Customer, id=id)
-
-    if request.method == 'POST':
-        form = CustomerUpdateForm(request.POST, instance=customer)
-        if form.is_valid():
-            form.save()
-            print(" update successfuly")
-            messages.success(
-                request, 'successfully update customer info')
-    else:
-        print("its get method")
-        form = CustomerUpdateForm(instance=customer)
-
-    context = {'form': form, 'customer': customer}
-    return render(request, 'auth/update_customer.html', context)
+    return render(request, template, {'form': form})
 
 
-def logout_customer(request):
+def logout_view(request):
     """
-    View to handle customer logout.
+    Unified logout for all users.
     """
     logout(request)
-    # Clear cart session data
-    request.session['cart'] = {}
-    request.session['total_price'] = 0.00
-    request.session['subtotal'] = 0.00
-    request.session['promo_discount'] = 0.00
-    request.session['total'] = 0.00
-    request.session['discount'] = 0.00
-    request.session['item_count'] = None
+    request.session.update({
+        'cart': {},
+        'total_price': 0.00,
+        'subtotal': 0.00,
+        'promo_discount': 0.00,
+        'total': 0.00,
+        'discount': 0.00,
+        'item_count': None,
+    })
     messages.success(request, 'You have been successfully logged out.')
+    return redirect('login' if request.user.is_superuser else 'home')
+
+
+def update_user(request, id):
+    customer = get_object_or_404(Customer, id=id)
+    form = CustomerUpdateForm(request.POST or None, instance=customer)
+
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Successfully updated customer info.')
+
+    return render(request, 'auth/update_customer.html', {'form': form, 'customer': customer})
+
+
+def password_reset(request):
     return redirect('home')

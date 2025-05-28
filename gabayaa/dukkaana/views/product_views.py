@@ -15,7 +15,7 @@ from ..forms import ReviewForm
 ITEMS_PER_PAGE = 12
 
 
-@cache_page(60 * 15)  # Cache for 15 minutes
+# @cache_page(60 * 15)  # Cache for 15 minutes
 def home(request):
     """
     View to display the homepage with featured products and categories.
@@ -37,7 +37,7 @@ def home(request):
         })
 
 
-@cache_page(60 * 15)  # Cache for 15 minutes
+# @cache_page(60 * 15)  # Cache for 15 minutes
 def product_list(request, category):
     """
     View to display a list of products in a specific category.
@@ -73,6 +73,9 @@ def product_list(request, category):
             'category': category,
             'search_query': search_query,
             'sort_by': sort_by,
+            'page_number': page_obj.number,
+            # 'is_logged_in': request.user.is_authenticated
+            # 'isAnon': request.user == "AnonymousUser"
         }
 
         return render(request, 'view/products.html', context)
@@ -174,12 +177,18 @@ def product_info(request, category, id):
         return redirect('home')
 
 
-@login_required
+# @login_required
 def add_review(request, product_id):
     """
     View to add a review to a product.
     """
+
     product = get_object_or_404(Product, id=product_id)
+    if not request.user.is_authenticated:
+        messages.warning(
+            request, 'Please Login to leave a review.')
+        return redirect('product_info', category=product.category, id=product.id)
+
     existing_review = Review.objects.filter(
         product=product, user=request.user).first()
     if existing_review:

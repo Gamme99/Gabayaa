@@ -1,4 +1,6 @@
 from django.urls import path, include
+
+from .views import authenticate_views
 from . import views
 from .views import authenticate_views, product_views, manager_views, cart_views, payment_views
 from django.conf import settings
@@ -8,15 +10,16 @@ from django.contrib.auth.decorators import login_required
 urlpatterns = [
     path('', product_views.home, name='home'),
     path('manager', authenticate_views.manager, name='manager'),
-    path('login', authenticate_views.loginManager, name='login'),
-    path('customer/register', authenticate_views.register_customer,
-         name='register_customer'),
+    path('login', authenticate_views.login_view, name='login'),
+    path('customer/register', authenticate_views.register_view,
+         name='register'),
     path('customer/update_customer/<str:id>',
-         authenticate_views.update_customer, name='update_customer'),
-    path('customer/login', authenticate_views.login_customer, name='login_customer'),
-    path('customer/logout', authenticate_views.logout_customer,
+         authenticate_views.update_user, name='update_user'),
+    path('customer/logout', authenticate_views.logout_view,
          name='logout_customer'),
-    path('logout', authenticate_views.logoutManager, name='logout'),
+    path('logout', authenticate_views.logout_view, name='logout'),
+    path('password_reset', authenticate_views.password_reset,
+         name='password_reset'),
 
     path('huccuu', product_views.cloths, name='cloths'),
     path('kophee', product_views.shoes, name='shoes'),
@@ -44,6 +47,7 @@ urlpatterns = [
     path('checkout/cancel', payment_views.checkout_cancel, name='cancel'),
     path('paypal/', include('paypal.standard.ipn.urls')),
 
+    #     path('manager', authenticate_views.manager, name='manager'),
     path('manager/add_product', manager_views.add_product, name='add_product'),
     path('manager/view_products', manager_views.view_products, name='view_products'),
     path('manager/view_product/search',

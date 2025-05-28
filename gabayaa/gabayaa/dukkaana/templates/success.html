@@ -1,0 +1,14 @@
+{% extends 'nav.html' %} {% block content %}
+
+<div
+  class="d-flex justify-content-center align-items-center"
+  style="height: 50vh"
+>
+  <div class="d-flex flex-column text-center">
+    <p>Successfully purchased the item</p>
+    <p>order details are sent to <strong> {{email}}</strong></p>
+    <p>Thank you for using gabaya <strong>{{customer}}</strong>!</p>
+  </div>
+</div>
+
+{% endblock %}

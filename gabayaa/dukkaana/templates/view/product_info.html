@@ -184,7 +184,7 @@
         {% endfor %}
       </div>
 
-      {% if user.is_authenticated %}
+      {% if 1 %}
       <div class="mt-10">
         <h3 class="text-lg font-medium text-gray-900">Write a review</h3>
         <form method="POST" action="{% url 'add_review' product.id %}" class="mt-6">
@@ -213,14 +213,14 @@
               <label
                 for="comment"
                 class="block text-sm font-medium text-gray-700"
-                >Review</label
+                >write your feedback below</label
               >
               <div class="mt-1">
                 <textarea
                   id="comment"
                   name="comment"
                   rows="4"
-                  class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  class="shadow-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 ></textarea>
               </div>
             </div>

@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from django.shortcuts import render, redirect, get_object_or_404
 from .helper import calculate_item_count, convertToDict
 from django.shortcuts import get_object_or_404
@@ -78,42 +79,34 @@ def calculate_cart_totals(cart_items):
     }
 
 
+
 def view_cart(request):
     """
     View to display the user's cart (supports both authenticated and guest users).
     """
-    try:
-        if request.user.is_authenticated:
-            cart, created = Cart.objects.get_or_create(user=request.user)
-            cart.update_totals()
-            items = cart.items.all().select_related('product')
-            print("cart items", items)
-        else:
-            cart = None
-            items = []
-            session_cart = get_session_cart(request)
-            for item_id, item_data in session_cart.items():
-                # Create a dummy object for display
-                product = get_object_or_404(
-                    Product, id=item_id, is_active=True)
-                item_obj = type('CartItem', (), {})()
-                item_obj.product = product
-                item_obj.quantity = item_data['quantity']
-                item_obj.unit_price = item_data['price']
-                item_obj.get_total_price = lambda: item_obj.unit_price * item_obj.quantity
-                items.append(item_obj)
-        context = {
-            'cart': cart,
-            'cart_items': items,
-        }
-        return render(request, 'cart.html', context)
-    except Exception as e:
-        messages.error(request, _(
-            'An error occurred while loading your cart.'))
-        return render(request, 'error.html', {
-            'error_message': _('An error occurred while loading your cart.')
-        })
+    cart = None
+    items = []
 
+    if request.user.is_authenticated:
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        cart.update_totals()
+        items = cart.items.all().select_related('product')
+    else:
+        session_cart = get_session_cart(request)
+        for item_id, item_data in session_cart.items():
+            product = get_object_or_404(Product, id=item_id, is_active=True)
+            # total = item_data['quantity'] * item_data['price']
+            items.append(SimpleNamespace(
+                product=product,
+                quantity=item_data['quantity'],
+                unit_price=item_data['price'],
+                # total_price=total
+            ))
+        # cart is already provided by cart_context for guests, don't overwrite it here
+    print(items)
+    return render(request, 'cart.html', {
+        'cart_items': items
+    })
 
 def add_to_cart(request, product_id):
     """
@@ -137,6 +130,7 @@ def add_to_cart(request, product_id):
         else:
             cart = get_session_cart(request)
             pid = str(product_id)
+            print(f"pid: {pid}")
             if pid in cart:
                 cart[pid]['quantity'] += 1
             else:

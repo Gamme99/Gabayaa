@@ -15,52 +15,52 @@
                     <h2 id="cart-heading" class="sr-only">Items in your shopping cart</h2>
 
                     <ul role="list" class="border-t border-b border-gray-200 divide-y divide-gray-200">
-                        {% for item in cart_items %}
-                        <li class="flex py-6 sm:py-10">
-                            <div class="flex-shrink-0">
-                                <img src="{{ item.product.get_first_image.image.url }}" alt="{{ item.product.name }}" class="w-24 h-24 rounded-md object-center object-cover sm:w-32 sm:h-32">
-                            </div>
-
-                            <div class="ml-4 flex-1 flex flex-col justify-between sm:ml-6">
-                                <div class="relative pr-9 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:pr-0">
-                                    <div>
-                                        <div class="flex justify-between">
-                                            <h3 class="text-sm">
-                                                <a href="{% url 'product_info' item.product.category item.product.id %}" class="font-medium text-gray-700 hover:text-gray-800">
-                                                    {{ item.product.name }}
-                                                </a>
-                                            </h3>
-                                        </div>
-                                        <p class="mt-1 text-sm font-medium text-gray-900">${{ item.unit_price }}</p>
-                                    </div>
-
-                                    <div class="mt-4 sm:mt-0 sm:pr-9">
-                                        <label for="quantity-{{ item.id }}" class="sr-only">Quantity, {{ item.product.name }}</label>
-                                        <select id="quantity-{{ item.id }}" name="quantity" class="max-w-full rounded-md border border-gray-300 py-1.5 text-base leading-5 font-medium text-gray-700 text-left shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" onchange="updateQuantity('{{ item.id }}', this.value)">
-                                            {% for i in "123456789" %}
-                                            <option value="{{ forloop.counter }}" {% if forloop.counter == item.quantity %}selected{% endif %}>{{ forloop.counter }}</option>
-                                            {% endfor %}
-                                        </select>
-                                        <div class="absolute top-0 right-0">
-                                            <button type="button" class="-m-2 p-2 inline-flex text-gray-400 hover:text-gray-500" onclick="removeItem('{{ item.id }}')">
-                                                <span class="sr-only">Remove</span>
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
-                                    </div>
+                        {% if cart_items %}
+                            {% for item in cart_items %}
+                            <li class="flex py-6 sm:py-10">
+                                <div class="flex-shrink-0">
+                                    <img src="{{ item.product.get_first_image.image.url }}" alt="{{ item.product.name }}" class="w-24 h-24 rounded-md object-center object-cover sm:w-32 sm:h-32">
                                 </div>
-
-                                <p class="mt-4 flex text-sm text-gray-500 space-x-2">
-                                    <span>Total: ${{ item.get_total_price }}</span>
-                                </p>
-                            </div>
-                        </li>
-                        {% empty %}
-                        <li class="py-6">
-                            <p class="text-gray-500 text-center">Your cart is empty</p>
-                        </li>
-                        {% endfor %}
+                    
+                                <div class="ml-4 flex-1 flex flex-col justify-between sm:ml-6">
+                                    <div class="relative pr-9 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:pr-0">
+                                        <div>
+                                            <div class="flex justify-between">
+                                                <h3 class="text-sm">
+                                                    <a href="{% url 'product_info' item.product.category item.product.id %}" class="font-medium text-gray-700 hover:text-gray-800">
+                                                        {{ item.product.name }}
+                                                    </a>
+                                                </h3>
+                                            </div>
+                                            <p class="mt-1 text-sm font-medium text-gray-900">${{ item.unit_price }}</p>
+                                        </div>
+                    
+                                        <div class="mt-4 sm:mt-0 sm:pr-9">
+                                            <label for="quantity-{{ item.id }}" class="sr-only">Quantity, {{ item.quantity }}</label>
+                                            <select id="quantity-{{ item.id }}" name="quantity" class="max-w-full rounded-md border border-gray-300 py-1.5 text-base leading-5 font-medium text-gray-700 text-left shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" onchange="updateQuantity('{{ item.id }}', this.value)">
+                                                {% for i in "123456789" %}
+                                                <option value="{{ forloop.counter }}" {% if forloop.counter == item.quantity %}selected{% endif %}>{{ forloop.counter }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="absolute top-0 right-0">
+                                                <button type="button" class="-m-2 p-2 inline-flex text-gray-400 hover:text-gray-500" onclick="removeItem('{{ item.id }}')">
+                                                    <span class="sr-only">Remove</span>
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                    
+                                </div>
+                            </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="py-6">
+                                <p class="text-gray-500 text-center">Your cart is empty</p>
+                            </li>
+                        {% endif %}
                     </ul>
+                    
                 </section>
 
                 <!-- Order summary -->
