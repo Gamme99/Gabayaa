@@ -12,6 +12,8 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from ..constants import TRANSACTION_FEE_PERCENTAGE
+from ..utils.cart import CartSummary
 
 TRANSACTION_FEE_PERCENTAGE = Decimal('0.03')
 
@@ -65,55 +67,44 @@ def update_session_cart(request, cart):
     request.session['cart'] = json.dumps(cart)
 
 
-def calculate_cart_totals(cart_items):
-    """
-    Helper function to calculate cart totals.
-    """
-    subtotal = sum(item.get_total_price() for item in cart_items)
-    transaction_fee = subtotal * TRANSACTION_FEE_PERCENTAGE
-    total = subtotal + transaction_fee
-    return {
-        'subtotal': round(subtotal, 2),
-        'transaction_fee': round(transaction_fee, 2),
-        'total': round(total, 2)
-    }
-
-
-
 def view_cart(request):
     """
-    View to display the user's cart (supports both authenticated and guest users).
+    View to display the shopping cart.
     """
-    cart = None
-    items = []
-
     if request.user.is_authenticated:
-        cart, created = Cart.objects.get_or_create(user=request.user)
-        cart.update_totals()
-        items = cart.items.all().select_related('product')
+        try:
+            cart = Cart.objects.get(user=request.user)
+            cart_items = CartItem.objects.filter(
+                cart=cart).select_related('product')
+        except Cart.DoesNotExist:
+            cart_items = []
     else:
         session_cart = get_session_cart(request)
+        cart_items = []
         for item_id, item_data in session_cart.items():
-            product = get_object_or_404(Product, id=item_id, is_active=True)
-            # total = item_data['quantity'] * item_data['price']
-            items.append(SimpleNamespace(
-                product=product,
-                quantity=item_data['quantity'],
-                unit_price=item_data['price'],
-                # total_price=total
-            ))
-        # cart is already provided by cart_context for guests, don't overwrite it here
-    print(items)
-    return render(request, 'cart.html', {
-        'cart_items': items
+            try:
+                product = Product.objects.get(id=item_id)
+                cart_items.append(SimpleNamespace(
+                    id=item_id,
+                    product=product,
+                    quantity=item_data['quantity'],
+                    unit_price=product.price
+                ))
+            except Product.DoesNotExist:
+                continue
+
+    summary = CartSummary(cart_items)
+
+    return render(request, 'cart/cart.html', {
+        'cart_items': cart_items,
+        'cart_summary': summary.to_dict()
     })
+
 
 def add_to_cart(request, product_id):
     """
     View to add a product to the cart (supports both authenticated and guest users).
     """
-    print(
-        f"[DEBUG] add_to_cart called. Method: {request.method}, User: {request.user}, Product ID: {product_id}")
     try:
         product = get_object_or_404(Product, id=product_id, is_active=True)
         if request.user.is_authenticated:
@@ -147,8 +138,8 @@ def add_to_cart(request, product_id):
             print("updated session cart")
         messages.success(request, _('Product added to cart successfully.'))
         print("added to cart")
-        # Redirect to the category page after adding to cart
-        return redirect(f'/{product.category.lower()}')
+        # Redirect to the product detail page after adding to cart
+        return redirect('product_detail', id=product_id)
     except Exception as e:
         print(f"[ERROR] Exception in add_to_cart: {e}")
         messages.error(request, _(
@@ -158,73 +149,73 @@ def add_to_cart(request, product_id):
         })
 
 
-# @login_required
+@require_POST
 def update_cart_item(request, item_id):
     """
-    View to update the quantity of a cart item.
+    View to update cart item quantity.
     """
     try:
-        cart_item = get_object_or_404(
-            CartItem, id=item_id, cart__user=request.user)
-        quantity = int(request.POST.get('quantity', 1))
+        data = json.loads(request.body)
+        quantity = int(data.get('quantity', 1))
 
-        if quantity > 0:
+        if request.user.is_authenticated:
+            cart_item = get_object_or_404(
+                CartItem, id=item_id, cart__user=request.user)
             cart_item.quantity = quantity
             cart_item.save()
-            cart_item.cart.update_totals()
-            messages.success(request, _('Cart updated successfully.'))
         else:
-            cart_item.delete()
-            cart_item.cart.update_totals()
-            messages.success(request, _('Item removed from cart.'))
+            cart = get_session_cart(request)
+            if str(item_id) in cart:
+                cart[str(item_id)]['quantity'] = quantity
+                request.session['cart'] = json.dumps(cart)
 
-        return redirect('view_cart')
+        return JsonResponse({'success': True})
     except Exception as e:
-        messages.error(request, _(
-            'An error occurred while updating your cart.'))
-        return render(request, 'error.html', {
-            'error_message': _('An error occurred while updating your cart.')
-        })
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
-# @login_required
-def remove_from_cart(request, item_id):
+@require_POST
+def remove_cart_item(request, item_id):
     """
-    View to remove an item from the cart.
+    View to remove item from cart.
     """
     try:
-        cart_item = get_object_or_404(
-            CartItem, id=item_id, cart__user=request.user)
-        cart = cart_item.cart
-        cart_item.delete()
-        cart.update_totals()
-        messages.success(request, _('Item removed from cart.'))
-        return redirect('view_cart')
+        if request.user.is_authenticated:
+            try:
+                cart_item = CartItem.objects.get(
+                    id=item_id, cart__user=request.user)
+                cart_item.delete()
+            except CartItem.DoesNotExist:
+                return JsonResponse({'success': True})  # Item already removed
+        else:
+            cart = get_session_cart(request)
+            if str(item_id) in cart:
+                del cart[str(item_id)]
+                request.session['cart'] = json.dumps(cart)
+
+        return JsonResponse({'success': True})
     except Exception as e:
-        messages.error(request, _(
-            'An error occurred while removing the item from your cart.'))
-        return render(request, 'error.html', {
-            'error_message': _('An error occurred while removing the item from your cart.')
-        })
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
-# @login_required
-def clear_cart(request):
+def proceed_to_checkout(request):
     """
-    View to clear all items from the cart.
+    View to handle proceeding to checkout from cart.
     """
-    try:
+    if request.user.is_authenticated:
         cart = get_object_or_404(Cart, user=request.user)
-        cart.items.all().delete()
-        cart.update_totals()
-        messages.success(request, _('Cart cleared successfully.'))
-        return redirect('view_cart')
-    except Exception as e:
-        messages.error(request, _(
-            'An error occurred while clearing your cart.'))
-        return render(request, 'error.html', {
-            'error_message': _('An error occurred while clearing your cart.')
-        })
+        if not CartItem.objects.filter(cart=cart).exists():
+            messages.warning(request, _('Your cart is empty.'))
+            return redirect('cart')
+    else:
+        cart = get_session_cart(request)
+        if not cart:
+            messages.warning(request, _('Your cart is empty.'))
+            return redirect('cart')
+
+    # Set session flag to indicate coming from cart
+    request.session['from_cart'] = True
+    return redirect('process_checkout')
 
 
 def update_total_after_discount(request):
@@ -236,19 +227,6 @@ def update_total_after_discount(request):
     request.session['discount_percent'] = discount_percent
     print("updated total", new_total)
     return JsonResponse({'message': 'updated total and discouont_percentage successfully'})
-
-
-def update_cart_total_items_and_price(cart):
-    cart_items = CartItem.objects.filter(cart=cart)
-    cart.total_items = cart_items.aggregate(total_items=Sum('quantity'))[
-        'total_items'] or 0
-    # print("total price before: ", cart.total_price)
-    total_price = sum(item.get_total_price() for item in cart_items)
-
-    # calculate 3 percent transaction fee paypal
-    cart.transaction_fee = total_price * Decimal('0.03')
-    cart.total_price = total_price + cart.transaction_fee
-    cart.save()
 
 
 @require_POST
@@ -445,4 +423,27 @@ def edit_quantity(request, id):
     except Exception as e:
         messages.error(request, _(
             'An error occurred while editing the quantity.'))
+        return redirect('cart')
+
+
+@require_POST
+def clear_cart(request):
+    """
+    View to clear all items from the cart.
+    """
+    try:
+        if request.user.is_authenticated:
+            cart = get_object_or_404(Cart, user=request.user)
+            CartItem.objects.filter(cart=cart).delete()
+            cart.update_totals()
+        else:
+            request.session['cart'] = '{}'
+            request.session['total'] = 0
+            request.session['discount_percent'] = 0
+
+        messages.success(request, _('Your cart has been cleared.'))
+        return redirect('cart')
+    except Exception as e:
+        messages.error(request, _(
+            'An error occurred while clearing your cart.'))
         return redirect('cart')

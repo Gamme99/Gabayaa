@@ -156,7 +156,7 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse('product_info', args=[self.category, self.id])
+        return reverse('product_detail', args=[self.id])
 
     def get_first_image(self):
         return self.images.first() if self.images.exists() else None
@@ -254,12 +254,13 @@ class Cart(models.Model):
             discount = self.total_price * (self.promo_code.discount / 100)
             self.total_price -= discount
 
-        self.transaction_fee = (self.total_price * Decimal('0.03')).quantize(Decimal('0.01'))
+        self.transaction_fee = (
+            self.total_price * Decimal('0.03')).quantize(Decimal('0.01'))
         self.save()
 
 
-
 class CartItem(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     cart = models.ForeignKey(
         Cart,
         on_delete=models.CASCADE,
@@ -326,6 +327,8 @@ class Order(models.Model):
         decimal_places=2
     )
     shipping_address = models.TextField(_('shipping address'))
+    email = models.EmailField(_('email'), max_length=255)
+    phone = models.CharField(_('phone'), max_length=20)
     discount_percent = models.DecimalField(
         _('discount percent'),
         max_digits=4,

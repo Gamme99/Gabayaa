@@ -89,7 +89,7 @@
                 ></i>
                 <span
                   class="ml-2 text-sm font-medium text-gray-700 group-hover:text-gray-800"
-                  >{{ total_items }}</span
+                  >{{ cart_summary.item_count }}</span
                 >
               </a>
             </div>
@@ -216,7 +216,7 @@
                     >${{ product.price }}</span
                   >
                   <a
-                    href="{% url 'product_info' product.category product.id %}"
+                    href="{% url 'product_detail' product.id %}"
                     class="text-indigo-600 hover:text-indigo-500"
                     >View Details</a
                   >

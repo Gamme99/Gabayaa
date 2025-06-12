@@ -24,7 +24,7 @@ def manager(request):
             'active_promos': PromoCode.objects.filter(is_active=True).count(),
             'recent_activities': []  # Optional
         }
-        return render(request, 'auth/manager.html', context)
+        return render(request, 'manager/manager.html', context)
     except Exception as e:
         return render(request, 'error.html', {
             'error_message': _('An error occurred while loading the manager dashboard.')
@@ -60,11 +60,7 @@ def login_view(request):
 
             return redirect('manager' if user.is_superuser or user.is_staff else 'home')
         messages.error(request, 'Invalid credentials.')
-    elif request.method != 'POST':
-        print(f"method is not post, its {request.method}")
-        messages.info(request, 'Please log in.')
-    print(f"its not post or valid {request.method}")
-    print(f"form: {form}")
+
     return render(request, 'auth/login.html', {'form': form})
 
 
@@ -126,7 +122,7 @@ def update_user(request, id):
         form.save()
         messages.success(request, 'Successfully updated customer info.')
 
-    return render(request, 'auth/update_customer.html', {'form': form, 'customer': customer})
+    return render(request, 'auth/update_user.html', {'form': form, 'customer': customer})
 
 
 def password_reset(request):

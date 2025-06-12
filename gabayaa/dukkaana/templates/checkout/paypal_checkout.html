@@ -1,0 +1,82 @@
+{% extends 'base.html' %} 
+{% load i18n %} 
+{% load static %}
+{% block title %}
+{% trans "PayPal Checkout - Gabayaa" %}{% endblock %} 
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">{% trans "PayPal Checkout" %}</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Order Summary -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">{% trans "Order Summary" %}</h2>
+
+        <div class="space-y-4">
+          {% if request.user.is_authenticated %} {% for item in cart.items.all %}
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="font-medium">{{ item.product.name }}</h3>
+              <p class="text-sm text-gray-600">
+                {% trans "Quantity" %}: {{ item.quantity }}
+              </p>
+            </div>
+            <p class="font-medium">${{ item.unit_price|floatformat:2 }}</p>
+          </div>
+          {% endfor %} {% else %} {% for item in cart.values %}
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="font-medium">{{ item.name }}</h3>
+              <p class="text-sm text-gray-600">
+                {% trans "Quantity" %}: {{ item.quantity }}
+              </p>
+            </div>
+            <p class="font-medium">${{ item.price|floatformat:2 }}</p>
+          </div>
+          {% endfor %} {% endif %}
+
+          <div class="border-t pt-4 mt-4">
+            <div class="flex justify-between mb-2">
+              <span class="text-gray-600">{% trans "Subtotal" %}</span>
+              <span>${{ total_price|floatformat:2 }}</span>
+            </div>
+            <div class="flex justify-between mb-2">
+              <span class="text-gray-600"
+                >{% trans "Transaction Fee (3%)" %}</span
+              >
+              <span>${{ transaction_fee|floatformat:2 }}</span>
+            </div>
+            <div
+              class="flex justify-between font-bold text-lg mt-4 pt-4 border-t"
+            >
+              <span>{% trans "Total" %}</span>
+              <span>${{ total_price|floatformat:2 }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PayPal Form -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">
+          {% trans "Complete Your Payment" %}
+        </h2>
+
+       
+
+        <div class="paypal-form">{{ form.render }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}
+<script>
+  // Add PayPal SDK
+  window.paypal = {
+    clientId: "{{ PAYPAL_CLIENT_ID }}",
+  };
+</script>
+<script src="https://www.paypal.com/sdk/js?client-id={{ PAYPAL_CLIENT_ID }}&currency=USD"></script>
+{% endblock %} {% endblock %}

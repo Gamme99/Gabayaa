@@ -1,0 +1,120 @@
+{% extends 'base.html' %} {% load i18n %} {% load static %} {% block title %} {%
+trans "PaymentMethod - Gabayaa" %} {% endblock %} {% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8">{% trans "Select Payment Method" %}</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Payment Methods -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">
+          {% trans "Available Payment Methods" %}
+        </h2>
+
+        <div class="space-y-4">
+          <!-- Stripe -->
+          <form
+            action="{% url 'stripe_checkout' %}"
+            method="POST"
+            class="border rounded-lg p-4 hover:border-blue-500 transition-colors"
+          >
+            {% csrf_token %}
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-4">
+                <img
+                  src="{% static 'images/stripe-logo.png' %}"
+                  alt="Stripe"
+                  class="h-8"
+                />
+                <div>
+                  <h3 class="font-medium">{% trans "Credit/Debit Card" %}</h3>
+                  <p class="text-sm text-gray-600">
+                    {% trans "Pay securely with Stripe" %}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="submit"
+                class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                {% trans "Pay with Stripe" %}
+              </button>
+            </div>
+          </form>
+
+          <!-- PayPal -->
+          <form
+            action="{% url 'paypal_checkout' %}"
+            method="POST"
+            class="border rounded-lg p-4 hover:border-blue-500 transition-colors"
+          >
+            {% csrf_token %}
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-4">
+                <img
+                  src="{% static 'images/paypal-logo.png' %}"
+                  alt="PayPal"
+                  class="h-8"
+                />
+                <div>
+                  <h3 class="font-medium">{% trans "PayPal" %}</h3>
+                  <p class="text-sm text-gray-600">
+                    {% trans "Pay with your PayPal account" %}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="submit"
+                class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                {% trans "Pay with PayPal" %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-xl font-semibold mb-4">{% trans "Order Summary" %}</h2>
+
+        <div class="space-y-4">
+          {% for item in cart_items %}
+          <div class="flex items-center space-x-4">
+            <img
+              src="{{ item.product.image.url }}"
+              alt="{{ item.product.name }}"
+              class="w-16 h-16 object-cover rounded"
+            />
+            <div class="flex-1">
+              <h3 class="font-medium">{{ item.product.name }}</h3>
+              <p class="text-sm text-gray-600">
+                {% trans "Quantity" %}: {{ item.quantity }}
+              </p>
+            </div>
+            <div class="text-right">
+              <p class="font-medium">${{ item.price|floatformat:2 }}</p>
+            </div>
+          </div>
+          {% endfor %}
+
+          <div class="border-t pt-4 space-y-2">
+            <div class="flex justify-between">
+              <span>{% trans "Subtotal" %}</span>
+              <span>${{ cart_summary.subtotal|floatformat:2 }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>{% trans "Transaction Fee" %} (3%)</span>
+              <span>${{ cart_summary.transaction_fee|floatformat:2 }}</span>
+            </div>
+            <div class="flex justify-between font-bold text-lg">
+              <span>{% trans "Total" %}</span>
+              <span>${{ cart_summary.total|floatformat:2 }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

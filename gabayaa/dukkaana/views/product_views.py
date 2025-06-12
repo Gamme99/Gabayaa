@@ -136,7 +136,7 @@ def buying(request):
         })
 
 
-def product_info(request, category, id):
+def product_detail(request, id):
     """
     View to display detailed information about a specific product.
     """
@@ -144,13 +144,12 @@ def product_info(request, category, id):
         product = get_object_or_404(
             Product.objects.select_related().prefetch_related('images', 'reviews'),
             id=id,
-            category=category,
             is_active=True
         )
 
         # Get related products from the same category
         related_products = Product.objects.filter(
-            category=category,
+            category=product.category,
             is_active=True
         ).exclude(id=id).select_related().prefetch_related('images')[:4]
 
@@ -162,16 +161,13 @@ def product_info(request, category, id):
             'related_products': related_products,
             'reviews': reviews,
         }
-        print("context", context)
 
-        return render(request, 'view/product_info.html', context)
+        return render(request, 'products/product_detail.html', context)
 
     except Http404:
-        print("Http404")
         messages.error(request, _('Product not found.'))
         return redirect('home')
     except Exception as e:
-        print("Exception", e)
         messages.error(request, _(
             'An error occurred while loading the product details.'))
         return redirect('home')
@@ -187,13 +183,13 @@ def add_review(request, product_id):
     if not request.user.is_authenticated:
         messages.warning(
             request, 'Please Login to leave a review.')
-        return redirect('product_info', category=product.category, id=product.id)
+        return redirect('product_detail', id=product.id)
 
     existing_review = Review.objects.filter(
         product=product, user=request.user).first()
     if existing_review:
         messages.error(request, _('You have already reviewed this product.'))
-        return redirect('product_info', category=product.category, id=product.id)
+        return redirect('product_detail', id=product.id)
     if request.method == 'POST':
         form = ReviewForm(request.POST)
         if form.is_valid():
@@ -202,12 +198,12 @@ def add_review(request, product_id):
             review.user = request.user
             review.save()
             messages.success(request, _('Review added successfully.'))
-            return redirect('product_info', category=product.category, id=product.id)
+            return redirect('product_detail', id=product.id)
         else:
             messages.error(request, _('Please correct the errors below.'))
     else:
         form = ReviewForm()
-    return render(request, 'view/add_review.html', {'product_id': product_id})
+    return render(request, 'reviews/add_review.html', {'product': product})
 
 
 def search_results(request):

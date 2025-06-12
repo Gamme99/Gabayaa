@@ -1,5 +1,5 @@
 {% extends 'base.html' %} 
-{% block title %} Login - Gabayaa{% endblock %}
+{% block title %} Login - Gabayaa {% endblock %} 
 {% block content %}
 <div
   class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8"
@@ -16,11 +16,10 @@
     </p>
   </div>
 
- <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+  <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
     <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
       <form class="space-y-6" method="POST">
-        {% csrf_token %} 
-        {% if form.non_field_errors %}
+        {% csrf_token %} {% if form.non_field_errors %}
         <div class="rounded-md bg-red-50 p-4">
           <div class="flex">
             <div class="ml-3">
@@ -47,7 +46,6 @@
               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
-          
         </div>
 
         <div>
@@ -143,6 +141,6 @@
         </div>
       </div>
     </div>
-  </div> -->
+  </div>
 </div>
 {% endblock %}

@@ -1,4 +1,4 @@
-{% extends 'nav.html' %} {% load static %} {% block content %}
+{% extends 'base.html' %} {% load static %} {% block content %}
 <div class="row justify-content-center py-4">
   <h2>Customer List</h2>
 </div>
@@ -47,9 +47,9 @@
         {% endif %} {% for customer in customers %}
         <li class="list-group-item">
           <a
-            href="{% url 'update_customer' customer.id %}"
+            href="{% url 'update_user' customer.id %}"
             class="user-link"
-            data-customer-url="{% url 'update_customer' customer.id %}"
+            data-customer-url="{% url 'update_user' customer.id %}"
           >
             {{ customer.username }}
           </a>
@@ -66,8 +66,8 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{% static 'js/search.js' %}"></script>
 <script>
-  // Store the update_customer URL as a data attribute
-  var updateCustomerUrl = "{% url 'update_customer' -1 %}"; // An empty placeholder for now
+  // Store the update_user URL as a data attribute
+  var updateCustomerUrl = "{% url 'update_user' -1 %}"; // An empty placeholder for now
   $("#search-results").attr("data-update-customer-url", updateCustomerUrl);
 </script>
 {% endblock %}

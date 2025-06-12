@@ -1,112 +1,294 @@
 {% extends 'base.html' %}
-{% block title %}Shopping Cart - Gabayaa{% endblock %}
+{% load i18n %}
+
+{% block title %}{% trans "Shopping Cart - Gabayaa" %}{% endblock %}
+
 {% block content %}
 <div class="bg-white">
   <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
-    <div class="max-w-2xl mx-auto lg:max-w-none">
-      <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">Shopping Cart</h1>
+    <div class="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
+      <div class="lg:col-span-7">
+        <h1 class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+          {% trans "Shopping Cart" %}
+        </h1>
 
-      {% if cart.items.exists %}
-      <div class="mt-12 lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
-        <div class="lg:col-span-7">
-          <ul role="list" class="border-t border-b border-gray-200 divide-y divide-gray-200">
-            {% for item in items %}
-            <li class="flex py-6 sm:py-10">
-              <div class="flex-shrink-0">
-                {% if item.product.get_first_image %}
-                <img src="{{ item.product.get_first_image.image.url }}" alt="{{ item.product.name }}" class="w-24 h-24 rounded-md object-center object-cover sm:w-32 sm:h-32">
-                {% else %}
-                <div class="w-24 h-24 rounded-md bg-gray-100 flex items-center justify-center sm:w-32 sm:h-32">
-                  <span class="text-gray-400 text-sm">No image</span>
-                </div>
-                {% endif %}
+        {% if cart_items %}
+        <div class="mt-12 space-y-8">
+          {% for item in cart_items %}
+          <div class="flex items-center py-6 border-b border-gray-200">
+            <div class="flex-shrink-0 w-24 h-24">
+              {% if item.product.get_first_image %}
+              <img src="{{ item.product.get_first_image.image.url }}" alt="{{ item.product.name }}"
+                class="w-full h-full object-center object-cover rounded-md">
+              {% else %}
+              <div class="w-full h-full bg-gray-100 rounded-md flex items-center justify-center">
+                <span class="text-gray-400 text-sm">{% trans "No image" %}</span>
               </div>
+              {% endif %}
+            </div>
 
-              <div class="ml-4 flex-1 flex flex-col sm:ml-6">
+            <div class="ml-4 flex-1">
+              <div class="flex items-center justify-between">
                 <div>
-                  <div class="flex justify-between">
-                    <h4 class="text-sm">
-                      <a href="{{ item.product.get_absolute_url }}" class="font-medium text-gray-700 hover:text-gray-800">
-                        {{ item.product.name }}
-                      </a>
-                    </h4>
-                    <p class="ml-4 text-sm font-medium text-gray-900">${{ item.unit_price }}</p>
-                  </div>
-                  <p class="mt-1 text-sm text-gray-500">{{ item.product.category }}</p>
+                  <h3 class="text-base font-medium text-gray-900">
+                    <a href="{% url 'product_detail' item.product.id %}">{{ item.product.name }}</a>
+                  </h3>
+                  <p class="mt-1 text-sm text-gray-500">${{ item.product.price }}</p>
                 </div>
-
-                <div class="mt-4 flex-1 flex items-end justify-between">
-                  <div class="flex items-center">
-                    <form method="POST" action="{% url 'update_cart_item' item.id %}" class="flex items-center">
-                      {% csrf_token %}
-                      <label for="quantity-{{ item.id }}" class="mr-2 text-sm text-gray-500">Qty</label>
-                      <select id="quantity-{{ item.id }}" name="quantity" onchange="this.form.submit()" class="max-w-full rounded-md border border-gray-300 py-1.5 text-base leading-5 font-medium text-gray-700 text-left shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        {% for i in "123456789" %}
-                        <option value="{{ forloop.counter }}" {% if forloop.counter == item.quantity %}selected{% endif %}>{{ forloop.counter }}</option>
-                        {% endfor %}
-                      </select>
-                    </form>
-                  </div>
-
-                  <div class="ml-4">
-                    <form method="POST" action="{% url 'remove_from_cart' item.id %}" class="flex">
-                      {% csrf_token %}
-                      <button type="submit" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                        <span>Remove</span>
-                      </button>
-                    </form>
-                  </div>
+                <div class="flex items-center">
+                  <select name="quantity" data-item-id="{{ item.id }}"
+                    class="max-w-full rounded-md border border-gray-300 py-1.5 text-base leading-5 font-medium text-gray-700 text-left shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    {% for i in "123456789" %}
+                    <option value="{{ forloop.counter }}" {% if forloop.counter == item.quantity %}selected{% endif %}>
+                      {{ forloop.counter }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <button type="button" data-item-id="{{ item.id }}"
+                    class="ml-4 text-red-600 hover:text-red-500 remove-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                  </button>
                 </div>
               </div>
-            </li>
-            {% endfor %}
-          </ul>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="mt-12 text-center">
+          <p class="text-gray-500">{% trans "Your cart is empty." %}</p>
+          <a href="{% url 'home' %}" class="mt-4 inline-block text-blue-600 hover:text-blue-500">
+            {% trans "Continue Shopping" %}
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if cart_items %}
+      <div class="mt-16 lg:mt-0 lg:col-span-5">
+        <div class="bg-gray-50 rounded-lg px-4 py-6 sm:p-6 lg:p-8">
+          <h2 class="text-lg font-medium text-gray-900">{% trans "Order Summary" %}</h2>
+          <div class="mt-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-gray-600">{% trans "Subtotal" %}</p>
+              <p class="text-sm font-medium text-gray-900">${{ cart_summary.subtotal|floatformat:2 }}</p>
+            </div>
+            <div class="flex items-center justify-between">
+              <p class="text-sm text-gray-600">{% trans "Transaction Fee (3%)" %}</p>
+              <p class="text-sm font-medium text-gray-900">${{ cart_summary.transaction_fee|floatformat:2 }}</p>
+            </div>
+            <div class="border-t border-gray-200 pt-4 flex items-center justify-between">
+              <p class="text-base font-medium text-gray-900">{% trans "Total" %}</p>
+              <p class="text-base font-medium text-gray-900">${{ cart_summary.total|floatformat:2 }}</p>
+            </div>
+          </div>
 
           <div class="mt-6">
-            <form method="POST" action="{% url 'clear_cart' %}" class="flex justify-end">
+            <form method="post" action="{% url 'process_checkout' %}" id="checkout-form">
               {% csrf_token %}
-              <button type="submit" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                Clear Cart
+              
+              <!-- Shipping Information -->
+              <div class="space-y-4 mb-6">
+                <h3 class="text-lg font-medium text-gray-900">{% trans "Shipping Information" %}</h3>
+                
+                <div>
+                  <label for="email" class="block text-sm font-medium text-gray-700">{% trans "Email" %}</label>
+                  <input type="email" name="email" id="email" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+
+                <div>
+                  <label for="full_name" class="block text-sm font-medium text-gray-700">{% trans "Full Name" %}</label>
+                  <input type="text" name="full_name" id="full_name" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+
+                <div>
+                  <label for="address" class="block text-sm font-medium text-gray-700">{% trans "Address" %}</label>
+                  <input type="text" name="address" id="address" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label for="city" class="block text-sm font-medium text-gray-700">{% trans "City" %}</label>
+                    <input type="text" name="city" id="city" required
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                  </div>
+
+                  <div>
+                    <label for="state" class="block text-sm font-medium text-gray-700">{% trans "State" %}</label>
+                    <input type="text" name="state" id="state" required
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label for="zip_code" class="block text-sm font-medium text-gray-700">{% trans "ZIP Code" %}</label>
+                    <input type="text" name="zip_code" id="zip_code" required
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                  </div>
+
+                  <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700">{% trans "Phone" %}</label>
+                    <input type="tel" name="phone" id="phone" required
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payment Method Selection -->
+              <div class="space-y-4 mb-6">
+                <h3 class="text-lg font-medium text-gray-900">{% trans "Payment Method" %}</h3>
+                
+                <div class="space-y-4">
+                  <!-- Stripe -->
+                  <div class="border rounded-lg p-4 hover:border-blue-500 transition-colors">
+                    <label class="flex items-center space-x-4 cursor-pointer">
+                      <input type="radio" name="payment_method" value="stripe" class="h-4 w-4 text-blue-600 focus:ring-blue-500" checked>
+                      <div class="flex items-center space-x-4">
+                        <div>
+                          <h4 class="font-medium">{% trans "Credit/Debit Card" %}</h4>
+                          <p class="text-sm text-gray-600">{% trans "Pay securely with Stripe" %}</p>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+
+                  <!-- PayPal -->
+                  <div class="border rounded-lg p-4 hover:border-blue-500 transition-colors">
+                    <label class="flex items-center space-x-4 cursor-pointer">
+                      <input type="radio" name="payment_method" value="paypal" class="h-4 w-4 text-blue-600 focus:ring-blue-500">
+                      <div class="flex items-center space-x-4">
+                        <div>
+                          <h4 class="font-medium">{% trans "PayPal" %}</h4>
+                          <p class="text-sm text-gray-600">{% trans "Pay with your PayPal account" %}</p>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit"
+                class="w-full bg-blue-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {% trans "Proceed to Payment" %}
               </button>
             </form>
           </div>
-        </div>
-
-        <!-- Order summary -->
-        <div class="mt-16 lg:mt-0 lg:col-span-5">
-          <div class="bg-gray-50 rounded-lg px-4 py-6 sm:p-6 lg:p-8">
-            <h2 class="text-lg font-medium text-gray-900">Order summary</h2>
-            <div class="mt-6 space-y-4">
-              <div class="flex items-center justify-between">
-                <div class="text-sm text-gray-600">Subtotal</div>
-                <div class="text-sm font-medium text-gray-900">${{ cart.total_price }}</div>
-              </div>
-              <div class="flex items-center justify-between border-t border-gray-200 pt-4">
-                <div class="text-base font-medium text-gray-900">Order total</div>
-                <div class="text-base font-medium text-gray-900">${{ cart.total_price }}</div>
-              </div>
-            </div>
-
-            <div class="mt-6">
-              <a href="{% url 'checkout' %}" class="w-full bg-indigo-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                Checkout
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-      {% else %}
-      <div class="mt-12 text-center">
-        <h2 class="text-lg font-medium text-gray-900">Your cart is empty</h2>
-        <p class="mt-2 text-sm text-gray-500">Looks like you haven't added any items to your cart yet.</p>
-        <div class="mt-6">
-          <a href="{% url 'home' %}" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            Continue Shopping
-          </a>
         </div>
       </div>
       {% endif %}
     </div>
   </div>
 </div>
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Add CSRF token to all fetch requests
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    };
+
+    // Handle quantity changes
+    document.querySelectorAll('select[name="quantity"]').forEach(select => {
+      select.addEventListener('change', function () {
+        const itemId = this.dataset.itemId;
+        const quantity = this.value;
+        updateCartItem(itemId, quantity);
+      });
+    });
+
+    // Handle remove item
+    document.querySelectorAll('.remove-item').forEach(button => {
+      button.addEventListener('click', function () {
+        const itemId = this.dataset.itemId;
+        if (confirm('Are you sure you want to remove this item?')) {
+          removeCartItem(itemId);
+        }
+      });
+    });
+
+    // Handle form submission
+    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      
+      // Store shipping info in session
+      fetch('{% url "process_checkout" %}', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken
+        },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Redirect to the appropriate payment method
+          window.location.href = data.redirect_url;
+        } else {
+          alert(data.error || 'Error processing checkout');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error processing checkout');
+      });
+    });
+  });
+
+  function updateCartItem(itemId, quantity) {
+    fetch(`/cart/update/${itemId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ quantity: quantity })
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.reload();
+        } else {
+          alert(data.error || 'Error updating cart');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating cart');
+      });
+  }
+
+  function removeCartItem(itemId) {
+    fetch(`/cart/remove/${itemId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.reload();
+        } else {
+          console.error('Error:', data.error);
+          alert(data.error || 'Error removing item');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error removing item');
+      });
+  }
+</script>
+{% endblock %}
 {% endblock %} 

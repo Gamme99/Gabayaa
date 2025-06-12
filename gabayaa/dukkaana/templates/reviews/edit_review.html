@@ -1,0 +1,70 @@
+{% extends 'base.html' %} {% load i18n %} {% block title %}{% trans "Edit Review
+- Gabayaa" %}{% endblock %} {% block content %}
+<div class="bg-white">
+  <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
+    <div class="max-w-2xl mx-auto lg:max-w-none">
+      <div class="flex items-center justify-between mb-8">
+        <h1
+          class="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl"
+        >
+          {% trans "Edit Review" %}
+        </h1>
+        <a
+          href="{% url 'product_detail' review.product.id %}"
+          class="text-blue-600 hover:text-blue-500"
+        >
+          {% trans "Back to Product" %}
+        </a>
+      </div>
+
+      <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+        <div class="mb-6">
+          <h2 class="text-lg font-medium text-gray-900">
+            {{ review.product.name }}
+          </h2>
+          {% if review.product.get_first_image %}
+          <img
+            src="{{ review.product.get_first_image.image.url }}"
+            alt="{{ review.product.name }}"
+            class="mt-2 w-32 h-32 object-center object-cover rounded-md"
+          />
+          {% endif %}
+        </div>
+
+        <form method="post" class="space-y-6">
+          {% csrf_token %} {% for field in form %}
+          <div>
+            <label
+              for="{{ field.id_for_label }}"
+              class="block text-sm font-medium text-gray-700"
+            >
+              {{ field.label }}
+            </label>
+            <div class="mt-1">
+              {{ field }} {% if field.errors %}
+              <p class="mt-2 text-sm text-red-600">{{ field.errors.0 }}</p>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+
+          <div class="flex justify-end space-x-4">
+            <a
+              href="{% url 'product_detail' review.product.id %}"
+              class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              {% trans "Cancel" %}
+            </a>
+            <button
+              type="submit"
+              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              {% trans "Update Review" %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

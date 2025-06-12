@@ -1,0 +1,79 @@
+{% extends 'base.html' %} 
+{% load i18n %} 
+{% block title %} 
+{% trans "OrderConfirmation - Gabayaa" %} 
+{% endblock %} 
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-lg shadow-md p-8 text-center">
+      <div class="mb-6">
+        <svg
+          class="w-16 h-16 text-green-500 mx-auto"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M5 13l4 4L19 7"
+          ></path>
+        </svg>
+      </div>
+
+      <h1 class="text-3xl font-bold mb-4">
+        {% trans "Thank You for Your Order!" %}
+      </h1>
+      <p class="text-gray-600 mb-6">
+        {% trans "Your order has been successfully placed and is being processed." %}
+      </p>
+
+      <div class="bg-gray-50 rounded-lg p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">{% trans "Order Details" %}</h2>
+        <div class="space-y-2 text-left">
+          <p>
+            <span class="font-medium">{% trans "Order Number" %}:</span> {{ order.id }}
+          </p>
+          <p>
+            <span class="font-medium">{% trans "Customer" %}:</span> {{ customer}}
+          </p>
+          <p>
+            <span class="font-medium">{% trans "Email" %}:</span> {{ email }}
+          </p>
+          <p>
+            <span class="font-medium">{% trans "Total Amount" %}:</span> $ {{ order.total_amount|floatformat:2 }}
+          </p>
+          <p>
+            <span class="font-medium">{% trans "Payment Method" %}:</span> {{ order.payment_method }}
+          </p>
+          <p>
+            <span class="font-medium">{% trans "Shipping Address" %}:</span> {{ order.shipping_address }}
+          </p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <p class="text-gray-600">
+          {% trans "A confirmation email has been sent to your email address." %}
+        </p>
+        <div class="flex justify-center space-x-4">
+          <a
+            href="{% url 'home' %}"
+            class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            {% trans "Continue Shopping" %}
+          </a>
+          <a
+            href="{% url 'order_detail' order.id %}"
+            class="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-colors"
+          >
+            {% trans "View Order Details" %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

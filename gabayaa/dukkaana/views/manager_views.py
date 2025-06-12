@@ -28,7 +28,7 @@ def view_products(request):
         'electronic_products': electronic_products,
     }
 
-    return render(request, 'auth/view_products.html', context)
+    return render(request, 'manager/view_products.html', context)
 
 
 # @login_required(login_url="login")
@@ -183,7 +183,7 @@ def delete_product(request, id):
 def customer_list(request):
     customers = Customer.objects.all()
     context = {'customers': customers}
-    return render(request, 'auth/customer_list.html', context)
+    return render(request, 'manager/customer_list.html', context)
 
 
 # @login_required(login_url="login")
@@ -212,7 +212,7 @@ def order_list(request):
         'orders': orders,
     }
 
-    return render(request, 'auth/order_list.html', context)
+    return render(request, 'manager/order_list.html', context)
 
 # @login_required(login_url="login")
 
@@ -304,6 +304,6 @@ def create_promo_code(request):
             return redirect('manager')
     else:
         form = PromoCodeForm()
-    return render(request, 'auth/create_promo_code.html', {'form': form})
+    return render(request, 'manager/create_promo_code.html', {'form': form})
 
 #  export PATH="/Users/gammachis/Desktop/flutter/bin"
