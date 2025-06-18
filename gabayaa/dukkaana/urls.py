@@ -14,10 +14,10 @@ urlpatterns = [
     path('password_reset', authenticate_views.password_reset, name='password_reset'),
 
     # Customer URLs
-    path('customer/register', authenticate_views.register_view, name='register'),
+    #     path('user/register', authenticate_views.register_view, name='register'),
     path('user/update_user/<str:id>',
          authenticate_views.update_user, name='update_user'),
-    path('customer/logout', authenticate_views.logout_view, name='logout_customer'),
+    path('user/logout', authenticate_views.logout_view, name='logout_customer'),
 
     # Product URLs
     path('huccuu', product_views.cloths, name='cloths'),
@@ -77,6 +77,14 @@ urlpatterns = [
          manager_views.delete_product, name='delete_product'),
     path('manager/create_promo_code',
          manager_views.create_promo_code, name='create_promo_code'),
+    path('manager/register/', manager_views.register_customer, name='register'),
+    path('manager/customers/', manager_views.customer_list, name='customer_list'),
+    path('manager/customers/<int:customer_id>/orders/',
+         manager_views.customer_orders, name='customer_orders'),
+    path('manager/customers/<int:customer_id>/edit/',
+         manager_views.edit_customer, name='edit_customer'),
+    path('manager/customers/<int:customer_id>/delete/',
+         manager_views.delete_customer, name='delete_customer'),
 
     # Review URLs
     path('review/<int:review_id>/delete/',

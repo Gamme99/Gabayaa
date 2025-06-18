@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
+from django.db.models import Q
 # from django.contrib.auth.base_user import AbstractBaseUser
 # from django.http.request import HttpRequest
 
@@ -13,13 +14,10 @@ class CaseInsensitiveModelBackend(ModelBackend):
             username = kwargs.get(UserModel.USERNAME_FIELD)
         try:
             print("cant beleive am here")
-            case_insensitive_username_field = '{}__iexact'.format(
-                UserModel.USERNAME_FIELD)
-            print("trying somthing with case sens: ",
-                  case_insensitive_username_field)
-            print("user: ", username, ": Password: ", password)
+            # Try username or email (case-insensitive)
             user = UserModel._default_manager.get(
-                **{case_insensitive_username_field: username})
+                Q(username__iexact=username) | Q(email__iexact=username)
+            )
             print("trying somthing with user: ", user)
         except UserModel.DoesNotExist:
             UserModel().set_password(password)

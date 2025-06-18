@@ -60,40 +60,45 @@ def login_view(request):
 
             return redirect('manager' if user.is_superuser or user.is_staff else 'home')
         messages.error(request, 'Invalid credentials.')
+    elif request.method == 'POST':
+        print("method is post but form is not valid")
+        print(form.errors)
+    elif form.is_valid():
+        print("form is valid")
 
     return render(request, 'auth/login.html', {'form': form})
 
 
-def register_view(request):
-    """
-    Unified registration for customers (public) and managers (admin panel).
-    Use 'type' param to distinguish.
-    """
-    if request.GET.get('type') == 'manager':
-        form = UserCreationForm(request.POST or None)
-        template = 'auth/register.html'
-    else:
-        form = CustomerForm(request.POST or None, initial={
-            'username': 'Galmo',
-            'email': 'Galmo@example.com',
-            'first_name': 'Galmo',
-            'last_name': 'Said',
-            'password1': 'Summer@23',
-            'password2': 'Summer@23',
-            'street_address': '123 main st',
-            'city': 'Seattle',
-            'state': 'WA',
-            'zip_code': '98118',
-            'phone_number': '0000000000',
-        }) if request.method != 'POST' else CustomerForm(request.POST)
-        template = 'customerAuthentication/register.html'
+# def register_view(request):
+#     """
+#     Unified registration for customers (public) and managers (admin panel).
+#     Use 'type' param to distinguish.
+#     """
+#     if request.GET.get('type') == 'manager':
+#         form = UserCreationForm(request.POST or None)
+#         template = 'manager/register.html'
+#     else:
+#         form = CustomerForm(request.POST or None, initial={
+#             'username': 'Galmo',
+#             'email': 'Galmo@example.com',
+#             'first_name': 'Galmo',
+#             'last_name': 'Said',
+#             'password1': 'Summer@23',
+#             'password2': 'Summer@23',
+#             'street_address': '123 main st',
+#             'city': 'Seattle',
+#             'state': 'WA',
+#             'zip_code': '98118',
+#             'phone_number': '0000000000',
+#         }) if request.method != 'POST' else CustomerForm(request.POST)
+#         template = 'customerAuthentication/register.html'
 
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Registration successful. Please log in.')
-        return redirect('login')
+#     if request.method == 'POST' and form.is_valid():
+#         form.save()
+#         messages.success(request, 'Registration successful. Please log in.')
+#         return redirect('login')
 
-    return render(request, template, {'form': form})
+#     return render(request, template, {'form': form})
 
 
 def logout_view(request):

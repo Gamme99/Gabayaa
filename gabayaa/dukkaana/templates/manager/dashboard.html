@@ -1,24 +1,225 @@
-<a
-  href="{% url 'view_products' %}"
-  class="block w-full text-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
->
-  View All Products
-</a>
-<a
-  href="{% url 'customer_list' %}"
-  class="block w-full text-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
->
-  View All Customers
-</a>
-<a
-  href="{% url 'order_list' %}"
-  class="block w-full text-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
->
-  View All Orders
-</a>
-<a
-  href="{% url 'create_promo_code' %}"
-  class="block w-full text-center bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 transition-colors"
->
-  Create New Promo Code
-</a>
+{% extends 'base.html' %} {% load static %} {% block content %}
+<div class="container mt-4">
+  <div class="row mb-4">
+    <div class="col">
+      <h2 class="text-primary">Manager Dashboard</h2>
+      <p class="text-muted">Welcome to your management console</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Customer Management -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="flex-shrink-0">
+              <i class="fas fa-users fa-2x text-primary"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h5 class="card-title mb-0">Customer Management</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted">
+            Manage customer accounts, view order history, and handle customer
+            support.
+          </p>
+          <div class="d-grid gap-2">
+            <a href="{% url 'customer_list' %}" class="btn btn-outline-primary"
+              >View Customers</a
+            >
+            <a href="{% url 'register' %}" class="btn btn-outline-success"
+              >Register New Customer</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Management -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="flex-shrink-0">
+              <i class="fas fa-box fa-2x text-success"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h5 class="card-title mb-0">Product Management</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted">
+            Add, edit, or remove products. Manage inventory and product
+            categories.
+          </p>
+          <div class="d-grid gap-2">
+            <a href="{% url 'view_products' %}" class="btn btn-outline-success"
+              >View Products</a
+            >
+            <a href="{% url 'add_product' %}" class="btn btn-outline-success"
+              >Add New Product</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Management -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="flex-shrink-0">
+              <i class="fas fa-shopping-cart fa-2x text-info"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h5 class="card-title mb-0">Order Management</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted">
+            View and manage customer orders. Track order status and handle
+            fulfillment.
+          </p>
+          <div class="d-grid gap-2">
+            <a href="{% url 'order_list' %}" class="btn btn-outline-info"
+              >View Orders</a
+            >
+            <a href="{% url 'order_search' %}" class="btn btn-outline-info"
+              >Search Orders</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Promotions & Discounts -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="flex-shrink-0">
+              <i class="fas fa-tags fa-2x text-warning"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h5 class="card-title mb-0">Promotions & Discounts</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted">
+            Create and manage promotional codes, discounts, and special offers.
+          </p>
+          <div class="d-grid gap-2">
+            <a
+              href="{% url 'create_promo_code' %}"
+              class="btn btn-outline-warning"
+              >Create Promo Code</a
+            >
+            <a
+              href="{% url 'view_promo_codes' %}"
+              class="btn btn-outline-warning"
+              >View Promo Codes</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="flex-shrink-0">
+              <i class="fas fa-chart-line fa-2x text-danger"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h5 class="card-title mb-0">Analytics</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted">
+            View sales reports, customer insights, and business analytics.
+          </p>
+          <div class="d-grid gap-2">
+            <a href="{% url 'sales_report' %}" class="btn btn-outline-danger"
+              >Sales Report</a
+            >
+            <a
+              href="{% url 'customer_analytics' %}"
+              class="btn btn-outline-danger"
+              >Customer Analytics</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="flex-shrink-0">
+              <i class="fas fa-cog fa-2x text-secondary"></i>
+            </div>
+            <div class="flex-grow-1 ms-3">
+              <h5 class="card-title mb-0">Settings</h5>
+            </div>
+          </div>
+          <p class="card-text text-muted">
+            Configure store settings, manage user roles, and system preferences.
+          </p>
+          <div class="d-grid gap-2">
+            <a
+              href="{% url 'store_settings' %}"
+              class="btn btn-outline-secondary"
+              >Store Settings</a
+            >
+            <a
+              href="{% url 'user_management' %}"
+              class="btn btn-outline-secondary"
+              >User Management</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="container mt-4">
+  <div class="row g-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body">
+          <h6 class="card-title">Total Customers</h6>
+          <h2 class="mb-0">{{ total_customers }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <h6 class="card-title">Total Orders</h6>
+          <h2 class="mb-0">{{ total_orders }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body">
+          <h6 class="card-title">Total Products</h6>
+          <h2 class="mb-0">{{ total_products }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-warning text-white">
+        <div class="card-body">
+          <h6 class="card-title">Total Revenue</h6>
+          <h2 class="mb-0">${{ total_revenue|floatformat:2 }}</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

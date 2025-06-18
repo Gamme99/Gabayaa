@@ -6,10 +6,11 @@ from django.contrib import messages
 from ..models import ProductImage, Product, Customer, Order, OrderItem, PromoCode
 from ..forms import ProductForm, PromoCodeForm
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from .helper import superuser_required
+from django.contrib.auth.models import User
 
 
 # @login_required(login_url="login")
@@ -182,8 +183,17 @@ def delete_product(request, id):
 @superuser_required
 def customer_list(request):
     customers = Customer.objects.all()
-    context = {'customers': customers}
-    return render(request, 'manager/customer_list.html', context)
+
+    # Calculate total spent for each customer
+    for customer in customers:
+        total_spent = Order.objects.filter(user=customer).aggregate(
+            total=Sum('total_amount')
+        )['total'] or 0
+        customer.total_spent = round(total_spent, 2)
+
+    return render(request, 'manager/customer_list.html', {
+        'customers': customers
+    })
 
 
 # @login_required(login_url="login")
@@ -307,3 +317,113 @@ def create_promo_code(request):
     return render(request, 'manager/create_promo_code.html', {'form': form})
 
 #  export PATH="/Users/gammachis/Desktop/flutter/bin"
+
+
+# @superuser_required
+def register_customer(request):
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+
+        # Validation
+        if not all([first_name, last_name, username, email, phone, password1, password2]):
+            messages.error(request, 'All fields are required')
+            return redirect('register')
+
+        if password1 != password2:
+            messages.error(request, 'Passwords do not match')
+            return redirect('register')
+
+        if Customer.objects.filter(email=email).exists():
+            messages.error(request, 'Email already exists')
+            return redirect('register')
+
+        # Create customer
+        try:
+            customer = Customer.objects.create_user(
+                username=username,
+                email=email,
+                password=password1
+            )
+
+            # Update additional fields
+            customer.first_name = first_name
+            customer.last_name = last_name
+            customer.phone_number = phone
+            customer.save()
+
+            messages.success(request, 'Customer registered successfully')
+            return redirect('customer_list')
+
+        except Exception as e:
+            messages.error(request, f'Error creating customer: {str(e)}')
+            return redirect('register')
+
+    return render(request, 'manager/register.html')
+
+
+@login_required
+def customer_orders(request, customer_id):
+    customer = get_object_or_404(Customer, id=customer_id)
+    orders = Order.objects.filter(customer=customer).order_by('-created_at')
+    return render(request, 'manager/customer_orders.html', {
+        'customer': customer,
+        'orders': orders
+    })
+
+
+@login_required
+def edit_customer(request, customer_id):
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        email = request.POST.get('email')
+        username = request.POST.get('username')
+        phone = request.POST.get('phone')
+
+        # Check if email is already taken by another customer
+        if Customer.objects.filter(email=email).exclude(id=customer_id).exists():
+            messages.error(request, 'Email already exists')
+            return redirect('edit_customer', customer_id=customer_id)
+        if Customer.objects.filter(username=username).exclude(id=customer_id).exists():
+            messages.error(request, 'Username already exists')
+            return redirect('edit_customer', customer_id=customer_id)
+
+        try:
+            customer.first_name = first_name
+            customer.last_name = last_name
+            customer.email = email
+            customer.username = username
+            customer.phone_number = phone
+            customer.save()
+
+            messages.success(request, 'Customer updated successfully')
+            return redirect('customer_list')
+        except Exception as e:
+            messages.error(request, f'Error updating customer: {str(e)}')
+            return redirect('edit_customer', customer_id=customer_id)
+
+    return render(request, 'manager/edit_customer.html', {'customer': customer})
+
+
+@login_required
+def delete_customer(request, customer_id):
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    if request.method == 'POST':
+        try:
+            customer.delete()
+            messages.success(request, 'Customer deleted successfully')
+            return redirect('customer_list')
+        except Exception as e:
+            messages.error(request, f'Error deleting customer: {str(e)}')
+            return redirect('customer_list')
+
+    return render(request, 'manager/delete_customer.html', {'customer': customer})

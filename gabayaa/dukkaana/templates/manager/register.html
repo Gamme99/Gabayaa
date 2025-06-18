@@ -1,0 +1,215 @@
+{% extends 'base.html' %} {% load static %} {% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="max-w-2xl mx-auto mt-10 bg-white shadow-xl rounded-2xl p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+          Register New Customer
+        </h2>
+
+        <form method="post" class="space-y-6">
+          {% csrf_token %}
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label
+                for="first_name"
+                class="block text-sm font-medium text-gray-700"
+                >First Name</label
+              >
+              <input
+                type="text"
+                id="first_name"
+                name="first_name"
+                required
+                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            </div>
+            <div>
+              <label
+                for="last_name"
+                class="block text-sm font-medium text-gray-700"
+                >Last Name</label
+              >
+              <input
+                type="text"
+                id="last_name"
+                name="last_name"
+                required
+                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+        <div>
+            <label
+            for="username"
+            class="block text-sm font-medium text-gray-700"
+            >Usernmae</label
+            >
+            <input
+            type="text"
+            id="username"
+            name="username"
+            required
+            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+        </div>
+          
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700"
+              >Email Address</label
+            >
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700"
+              >Phone Number</label
+            >
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              required
+              class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label
+              for="password1"
+              class="block text-sm font-medium text-gray-700"
+              >Password</label
+            >
+            <input
+              type="password"
+              id="password1"
+              name="password1"
+              required
+              class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label
+              for="password2"
+              class="block text-sm font-medium text-gray-700"
+              >Confirm Password</label
+            >
+            <input
+              type="password"
+              id="password2"
+              name="password2"
+              required
+              class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+          </div>
+
+          {% if messages %}
+          <div class="space-y-2">
+            {% for message in messages %}
+            <div
+              class="p-3 rounded-md text-sm text-white {% if message.tags == 'error' %}bg-red-500{% else %}bg-green-500{% endif %}"
+            >
+              {{ message }}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <div
+            class="flex flex-col md:flex-row items-center justify-between gap-4 mt-6"
+          >
+            <button
+              type="submit"
+              class="w-full md:w-auto px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition"
+            >
+              <i class="fas fa-user-plus mr-2"></i> Register Customer
+            </button>
+            <a
+              href="{% url 'customer_list' %}"
+              class="w-full md:w-auto px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition text-center"
+            >
+              <i class="fas fa-arrow-left mr-2"></i> Back to Customer List
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .bg-gradient-primary {
+    background: linear-gradient(45deg, #4e73df 0%, #224abe 100%);
+  }
+
+  .form-floating > .form-control {
+    padding: 1rem 0.75rem;
+  }
+
+  .form-floating > label {
+    padding: 1rem 0.75rem;
+  }
+
+  .form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+  }
+
+  .btn-primary {
+    background: linear-gradient(45deg, #4e73df 0%, #224abe 100%);
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(45deg, #224abe 0%, #4e73df 100%);
+  }
+
+  .card {
+    border-radius: 1rem;
+    overflow: hidden;
+  }
+
+  .alert {
+    border-radius: 0.5rem;
+  }
+</style>
+
+<script>
+  // Form validation
+  (function () {
+    "use strict";
+    var forms = document.querySelectorAll(".needs-validation");
+    Array.prototype.slice.call(forms).forEach(function (form) {
+      form.addEventListener(
+        "submit",
+        function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          form.classList.add("was-validated");
+        },
+        false
+      );
+    });
+  })();
+
+  // Password match validation
+  document.getElementById("password2").addEventListener("input", function () {
+    if (this.value !== document.getElementById("password1").value) {
+      this.setCustomValidity("Passwords do not match");
+    } else {
+      this.setCustomValidity("");
+    }
+  });
+</script>
+{% endblock %}

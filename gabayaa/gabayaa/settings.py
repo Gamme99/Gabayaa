@@ -41,8 +41,8 @@ ALLOWED_HOSTS = os.environ.get(
 AUTH_USER_MODEL = "dukkaana.Customer"
 
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.AllowAllUsersModelBackend',
-    'dukkaana.backends.CaseInsensitiveModelBackend'
+    'dukkaana.backends.CaseInsensitiveModelBackend',
+    'django.contrib.auth.backends.ModelBackend',  # fallback
 ]
 
 INSTALLED_APPS = [
