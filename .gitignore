@@ -2,7 +2,8 @@
 .env
 media/
 gby/
-.gitignoregabayaa/db.sqlite3
+.gitignore
+gabayaa/db.sqlite3
 __pycache__/
 *.pyc
 *.pyo
