@@ -89,4 +89,5 @@ urlpatterns = [
     # Review URLs
     path('review/<int:review_id>/delete/',
          review_views.delete_review, name='delete_review'),
+    path('api/', include('api.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

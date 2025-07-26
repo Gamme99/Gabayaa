@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     'multiupload',
     'django.contrib.humanize',  # For better number formatting
     'django_cleanup.apps.CleanupConfig',  # For automatic file cleanup
+    'rest_framework',
+    'api'
 ]
 
 MIDDLEWARE = [
@@ -218,4 +220,4 @@ SECURE_HSTS_PRELOAD = True
 # Login URLs
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'base'
-LOGOUT_REDIRECT_URL = 'base'
+LOGOUT_REDIRECT_URL = 'home'
