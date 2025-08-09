@@ -1,1 +1,1 @@
-web: gunicorn gabayaa.gabayaa.wsgi:application --bind 0.0.0.0:$PORT 
+web: gunicorn gabayaa.wsgi:application --bind 0.0.0.0:$PORT 
