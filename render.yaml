@@ -28,7 +28,7 @@ services:
           property: connectionString
     autoDeploy: true
 
-Databases:
+databases:
   - name: gabayaa-db
     plan: free
     databaseName: gabayaa
