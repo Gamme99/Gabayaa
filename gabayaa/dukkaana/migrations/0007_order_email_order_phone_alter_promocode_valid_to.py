@@ -15,18 +15,21 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='order',
             name='email',
-            field=models.EmailField(default=django.utils.timezone.now, max_length=255, verbose_name='email'),
+            field=models.EmailField(
+                default='', max_length=255, verbose_name='email'),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='order',
             name='phone',
-            field=models.CharField(default=django.utils.timezone.now, max_length=20, verbose_name='phone'),
+            field=models.CharField(
+                default='', max_length=20, verbose_name='phone'),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='promocode',
             name='valid_to',
-            field=models.DateTimeField(default=datetime.datetime(2025, 6, 19, 0, 24, 28, 460514, tzinfo=datetime.timezone.utc), verbose_name='valid to'),
+            field=models.DateTimeField(default=datetime.datetime(
+                2025, 6, 19, 0, 24, 28, 460514, tzinfo=datetime.timezone.utc), verbose_name='valid to'),
         ),
     ]
