@@ -8,6 +8,7 @@ services:
       cd gabayaa
       python manage.py collectstatic --noinput
       python manage.py migrate --noinput
+      python manage.py create_admin --username admin --email admin@gabayaa.com --password admin123456
     startCommand: cd gabayaa && gunicorn gabayaa.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION

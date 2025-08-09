@@ -13,9 +13,14 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-import dj_database_url
 
 load_dotenv()
+
+# Try to import dj_database_url for production, but don't fail if not available
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -68,7 +73,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware' if os.environ.get(
+        'DATABASE_URL') else None,
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -77,6 +83,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
 ]
+
+# Remove None values from middleware
+MIDDLEWARE = [m for m in MIDDLEWARE if m is not None]
 
 ROOT_URLCONF = 'gabayaa.urls'
 
@@ -114,10 +123,9 @@ DATABASES = {
 }
 
 # If DATABASE_URL is provided (Render/Heroku), use Postgres
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
+if os.environ.get('DATABASE_URL') and dj_database_url:
     DATABASES['default'] = dj_database_url.parse(
-        DATABASE_URL, conn_max_age=600)
+        os.environ.get('DATABASE_URL'), conn_max_age=600)
 
 
 # Password validation
@@ -177,7 +185,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Use whitenoise storage only in production (when DATABASE_URL is present)
+if os.environ.get('DATABASE_URL'):
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # LOGIN_URL = 'login'
@@ -220,17 +231,23 @@ SESSION_SAVE_EVERY_REQUEST = True
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
 
-# Security Settings
-SECURE_SSL_REDIRECT = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SECURE = not DEBUG
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-X_FRAME_OPTIONS = 'DENY'
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Security Settings - Only apply in production
+if os.environ.get('DATABASE_URL'):
+    SECURE_SSL_REDIRECT = not DEBUG
+    SESSION_COOKIE_SECURE = not DEBUG
+    CSRF_COOKIE_SECURE = not DEBUG
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+else:
+    # Local development - ensure HTTP works
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 # Login URLs
 LOGIN_URL = 'login'
