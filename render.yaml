@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: gabayaa
+    env: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python gabayaa/manage.py collectstatic --noinput
+      python gabayaa/manage.py migrate --noinput
+    startCommand: gunicorn gabayaa.gabayaa.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DJANGO_DEBUG
+        value: false
+      - key: DJANGO_ALLOWED_HOSTS
+        value: localhost,127.0.0.1
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: RENDER_EXTERNAL_HOSTNAME
+        fromService:
+          type: web
+          name: gabayaa
+          property: host
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gabayaa-db
+          property: connectionString
+    autoDeploy: true
+
+Databases:
+  - name: gabayaa-db
+    plan: free
+    databaseName: gabayaa
+    user: gabayaa_user
