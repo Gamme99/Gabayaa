@@ -5,9 +5,10 @@ services:
     plan: free
     buildCommand: |
       pip install -r requirements.txt
-      python gabayaa/manage.py collectstatic --noinput
-      python gabayaa/manage.py migrate --noinput
-    startCommand: gunicorn gabayaa.gabayaa.wsgi:application --bind 0.0.0.0:$PORT
+      cd gabayaa
+      python manage.py collectstatic --noinput
+      python manage.py migrate --noinput
+    startCommand: cd gabayaa && gunicorn gabayaa.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
