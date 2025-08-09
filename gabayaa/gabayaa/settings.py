@@ -237,6 +237,14 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
-# CSRF trusted origins (Render domain). Set env DJANGO_CSRF_TRUSTED_ORIGINS to include full https URL
-CSRF_TRUSTED_ORIGINS = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(
-    ',') if os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS') else []
+# CSRF trusted origins (Render domain). Accept comma-separated values; add https:// if scheme missing
+_raw_csrf = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '')
+if _raw_csrf:
+    _origins = [o.strip() for o in _raw_csrf.split(',') if o.strip()]
+    CSRF_TRUSTED_ORIGINS = [
+        o if (o.startswith('http://')
+              or o.startswith('https://')) else f"https://{o}"
+        for o in _origins
+    ]
+else:
+    CSRF_TRUSTED_ORIGINS = []
