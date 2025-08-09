@@ -5,6 +5,27 @@ from django.db import migrations, models
 import uuid
 
 
+def convert_cartitem_id_to_uuid(apps, schema_editor):
+    # Only needed for PostgreSQL where casting bigint->uuid fails
+    if schema_editor.connection.vendor != 'postgresql':
+        return
+    with schema_editor.connection.cursor() as cursor:
+        # Enable extension for UUID generation
+        cursor.execute('CREATE EXTENSION IF NOT EXISTS "uuid-ossp";')
+        # Add a new UUID column with default values
+        cursor.execute(
+            'ALTER TABLE dukkaana_cartitem ADD COLUMN id_new uuid DEFAULT uuid_generate_v4();')
+        cursor.execute(
+            'ALTER TABLE dukkaana_cartitem ALTER COLUMN id_new SET NOT NULL;')
+        # Replace primary key from old integer id to new uuid column
+        cursor.execute(
+            'ALTER TABLE dukkaana_cartitem DROP CONSTRAINT dukkaana_cartitem_pkey;')
+        cursor.execute('ALTER TABLE dukkaana_cartitem DROP COLUMN id;')
+        cursor.execute(
+            'ALTER TABLE dukkaana_cartitem RENAME COLUMN id_new TO id;')
+        cursor.execute('ALTER TABLE dukkaana_cartitem ADD PRIMARY KEY (id);')
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -12,14 +33,24 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='cartitem',
-            name='id',
-            field=models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunPython(
+                    convert_cartitem_id_to_uuid, reverse_code=migrations.RunPython.noop),
+            ],
+            state_operations=[
+                migrations.AlterField(
+                    model_name='cartitem',
+                    name='id',
+                    field=models.UUIDField(
+                        default=uuid.uuid4, editable=False, primary_key=True, serialize=False),
+                ),
+            ],
         ),
         migrations.AlterField(
             model_name='promocode',
             name='valid_to',
-            field=models.DateTimeField(default=datetime.datetime(2025, 6, 18, 23, 32, 53, 177973, tzinfo=datetime.timezone.utc), verbose_name='valid to'),
+            field=models.DateTimeField(default=datetime.datetime(
+                2025, 6, 18, 23, 32, 53, 177973, tzinfo=datetime.timezone.utc), verbose_name='valid to'),
         ),
     ]
