@@ -73,11 +73,15 @@
 
     <div class="row mb-4 bg-white d-flex align-items-center">
       <div class="col-md-3">
+        {% if product.get_first_image %}
         <img
           class="img-fluid"
-          src="../../../media/{{ product.image }}"
+          src="{{ product.get_first_image.image.url }}"
           alt="{{ product.name }}"
         />
+        {% else %}
+        <div class="text-muted">No image available</div>
+        {% endif %}
       </div>
       <div class="col-md-3">
         <h5 class="card-title text-muted">{{ product.name }}</h5>
@@ -117,11 +121,15 @@
     {% for product in shoe_products %}
     <div class="row mb-4 bg-white d-flex align-items-center">
       <div class="col-md-3">
+        {% if product.get_first_image %}
         <img
           class="img-fluid"
-          src="../../../media/{{ product.image }}"
+          src="{{ product.get_first_image.image.url }}"
           alt="{{ product.name }}"
         />
+        {% else %}
+        <div class="text-muted">No image available</div>
+        {% endif %}
       </div>
       <div class="col-md-3">
         <h5 class="card-title text-muted">{{ product.name }}</h5>
@@ -163,11 +171,15 @@
     {% for product in electronic_products %}
     <div class="row mb-4 bg-white d-flex align-items-center">
       <div class="col-md-3">
+        {% if product.get_first_image %}
         <img
           class="img-fluid"
-          src="../../../media/{{ product.image }}"
+          src="{{ product.get_first_image.image.url }}"
           alt="{{ product.name }}"
         />
+        {% else %}
+        <div class="text-muted">No image available</div>
+        {% endif %}
       </div>
       <div class="col-md-3">
         <h5 class="card-title text-muted">{{ product.name }}</h5>

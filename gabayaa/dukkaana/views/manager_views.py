@@ -86,32 +86,20 @@ def search_customer(request):
 # @login_required(login_url="login")
 # @superuser_required
 def handle_product_images(product, images, request):
-
-    print("product is:", product)
-
-    first_image = None
-
-    for image in images:
-        # Create a ProductImage object, associate it with the product, and save it
-        product_image = ProductImage.objects.create(
+    for index, image in enumerate(images):
+        ProductImage.objects.create(
             image=image,
-            productId=product
+            product=product,
+            is_primary=index == 0,
         )
-        product_image.save()
-
-        # Set the first saved image if it's not set yet
-        if not first_image:
-            first_image = product_image.image
-
-    return first_image
 
 
 # @login_required(login_url="login")
 @superuser_required
 def add_product(request):
     message = ""
-    category = request.POST.get('category')
-    print("category: ", category)
+    category = request.POST.get('category') or request.GET.get('category')
+
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
         images = request.FILES.getlist("images")
@@ -119,12 +107,7 @@ def add_product(request):
         if form.is_valid():
             # Save the product information
             product = form.save()
-
-            first_image = handle_product_images(product, images, request)
-            if first_image:
-                print("first image: ", first_image)
-                product.image = first_image
-            product.save()
+            handle_product_images(product, images, request)
 
             # Handle successful product creation
             message = "success"
@@ -135,7 +118,7 @@ def add_product(request):
                 messages.error(
                     request, 'failed to add new product. try again!')
     else:
-        return redirect("manager")
+        form = ProductForm(initial={'category': category})
 
     context = {'form': form, 'message': message, 'category': category}
     return render(request, 'forms/add_product.html', context)

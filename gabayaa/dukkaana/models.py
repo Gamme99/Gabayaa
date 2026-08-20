@@ -155,8 +155,13 @@ class Product(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name)
+        if not self.slug or self.slug == 'no-name':
+            base_slug = slugify(self.name) or 'product'
+            self.slug = base_slug
+            suffix = 2
+            while Product.objects.filter(slug=self.slug).exclude(pk=self.pk).exists():
+                self.slug = f'{base_slug}-{suffix}'
+                suffix += 1
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
